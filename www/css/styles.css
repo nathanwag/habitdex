@@ -224,6 +224,77 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .list__row:last-child { border-bottom: 0; }
 .empty { font-size: var(--fs-sm); }
 
+.hero { display: flex; flex-direction: column; align-items: stretch; padding: 0 0 8px; text-align: center; }
+.hero__num { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
+.hero__total { font-size: var(--fs-hero); }
+.hero__goal { font-size: 1.4rem; font-weight: 700; color: var(--muted); }
+.hero__left { margin-top: 8px; color: var(--muted); font-size: var(--fs-sm); font-weight: 600; }
+
+.meter {
+  margin-top: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+.meter__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+  transition: width .35s ease;
+}
+
+/* Linha de habito: o circulo marca, o resto abre o habito. */
+.habits { margin: 0; padding: 0; list-style: none; }
+.habit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 64px;
+  padding: 0 4px 0 8px;
+}
+.habit + .habit { border-top: 1px solid var(--border); }
+.habit__check {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tap);
+  height: var(--tap);
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+}
+.habit__check svg {
+  width: 32px;
+  height: 32px;
+  padding: 5px;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  stroke-width: 2.6;
+  transition: background .15s, border-color .15s;
+}
+.habit.is-done .habit__check { color: var(--on-accent); }
+.habit.is-done .habit__check svg { background: var(--accent); border-color: var(--accent); }
+.habit__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 4px;
+  color: var(--text);
+  text-decoration: none;
+}
+.habit__name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.habit.is-done .habit__name { color: var(--muted); }
+.habit__sub { font-size: var(--fs-sm); color: var(--muted); }
+.habit__chev { display: inline-flex; padding: 8px; color: var(--muted); }
+.habit__chev svg { width: 18px; height: 18px; }
+.list__row .habit__body { padding-left: 0; }
+.icon-btn[disabled] { opacity: .3; pointer-events: none; }
+
 /* ---------- Habito ---------- */
 
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -231,10 +302,28 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .stat__v { font-size: 2rem; }
 .stat__k { font-size: var(--fs-xs); color: var(--muted); line-height: 1.25; }
 
-.list__row--link { color: var(--text); text-decoration: none; border-bottom: 0; }
-li + li > .list__row--link { border-top: 1px solid var(--border); }
-.daynav { display: flex; align-items: center; justify-content: space-between; }
-.daynav__label { font-size: 1rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+/* Grade das ultimas semanas: uma linha por semana, segunda a domingo. */
+.grid { display: grid; gap: 6px; }
+.grid__row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.grid__head span { text-align: center; font-size: .75rem; font-weight: 800; color: var(--muted); }
+.cell {
+  display: block;
+  aspect-ratio: 1;
+  max-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: var(--surface-2);
+  font: inherit;
+}
+button.cell { cursor: pointer; }
+.cell--done { background: var(--accent); }
+.cell--missed { background: color-mix(in srgb, var(--danger) 22%, var(--surface-2)); }
+.cell--off { background: var(--surface-2); opacity: .55; }
+.cell--open { background: transparent; outline: 2px dashed var(--accent); outline-offset: -2px; }
+.cell--before, .cell--future { background: transparent; }
+/* Semana do semanal com a meta batida ganha um fundo. */
+.grid__row.is-met { border-radius: 10px; box-shadow: 0 0 0 3px var(--accent-soft); background: var(--accent-soft); }
 
 /* ---------- Ajustes ---------- */
 

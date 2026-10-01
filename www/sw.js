@@ -4,7 +4,7 @@
  * cache-primeiro com revalidacao. Bumpar VERSION e como se deploya.
  */
 
-const VERSION = 'habitos-v1';
+const VERSION = 'habitos-v2';
 
 // Em localhost o cache atrapalha mais do que ajuda; o SW fica transparente
 // (mas continua exibindo push, pra testar notificacao no desktop).
@@ -17,7 +17,13 @@ const ASSETS = [
   './css/styles.css',
   './js/app.js',
   './js/ui.js',
+  './js/db.js',
+  './js/reminder.js',
+  './js/habits.js',
   './js/views/today.js',
+  './js/views/habit.js',
+  './js/views/habit-form.js',
+  './js/views/habits.js',
 ];
 
 // Cache e so aceleracao: se o CacheStorage falhar, segue sem ele.
