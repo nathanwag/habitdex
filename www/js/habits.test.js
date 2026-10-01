@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  dayProgress, habitHistory, streak, todayList,
+  dayProgress, habitHistory, streak, syncState, todayList,
 } from './habits.js';
 
 const daily = (id, extra = {}) => ({ id, name: `h${id}`, schedule: { kind: 'daily' }, createdDay: '2026-09-01', order: id, ...extra });
@@ -94,4 +94,19 @@ test('na grade do semanal, dia vazio nao e falta: cada semana diz se bateu a met
   assert.deepEqual(weeks.map((w) => [w.count, w.met]), [[2, true], [1, false], [1, false]]);
   // Semana atual ainda nao acabou: fica fora da taxa.
   assert.equal(rate, 1 / 2);
+});
+
+test('o estado mandado ao Worker diz o que foi feito hoje e quantas vezes na semana', () => {
+  const checks = [
+    check(1, '2026-09-20'), // semana anterior
+    check(1, '2026-09-21'),
+    check(1, '2026-09-23'),
+    check(2, '2026-09-23'),
+  ];
+  assert.deepEqual(syncState(checks, '2026-09-23'), {
+    day: '2026-09-23',
+    week: '2026-09-21',
+    doneToday: [1, 2],
+    weekCounts: { 1: 2, 2: 1 },
+  });
 });

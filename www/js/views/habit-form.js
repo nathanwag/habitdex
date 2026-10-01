@@ -1,6 +1,7 @@
 /* Novo hábito e editar hábito: nome, frequência e horário do lembrete. */
 
 import * as db from '../db.js';
+import * as push from '../push.js';
 import { html, raw, setTop, toast } from '../ui.js';
 
 // Segunda primeiro, como a semana dos habitos (weekOf).
@@ -108,6 +109,8 @@ async function submit(view) {
   if (error) { toast(error); return; }
   const saved = await db.saveHabit({ ...draft, name: draft.name.trim(), schedule: cleanSchedule(draft.schedule) });
   draft = null;
+  // O horario do lembrete mora no habito: o Worker precisa saber ja.
+  push.sync().catch((err) => toast(err.message));
   location.hash = `#/habito?id=${saved.id}`;
 }
 
@@ -157,6 +160,7 @@ async function open(view, params) {
       const archived = !draft.archived;
       await db.saveHabit({ ...draft, archived });
       draft = null;
+      push.sync().catch(() => {});
       toast(archived ? 'Hábito arquivado' : 'Hábito de volta');
       location.hash = archived ? '#/habitos' : `#/habito?id=${id}`;
     }

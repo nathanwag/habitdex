@@ -1,11 +1,13 @@
 /* Bootstrap e roteamento por hash (dispensa config de servidor). */
 
 import * as db from './db.js';
+import * as push from './push.js';
 import { $, initSheet, closeSheet } from './ui.js';
 import * as today from './views/today.js';
 import * as habit from './views/habit.js';
 import * as habitForm from './views/habit-form.js';
 import * as habits from './views/habits.js';
+import * as settings from './views/settings.js';
 
 const ROUTES = {
   '/': today.render,
@@ -13,6 +15,10 @@ const ROUTES = {
   '/habito/novo': habitForm.renderNew,
   '/habito/editar': habitForm.renderEdit,
   '/habitos': habits.render,
+  '/feito': today.doneFromReminder,
+  '/ajustes': settings.render,
+  '/ajustes/virada': settings.renderDayStart,
+  '/ajustes/servidor': settings.renderServer,
 };
 
 async function route() {
@@ -45,14 +51,22 @@ async function boot() {
   window.addEventListener('app:refresh', route);
   // Voltar ao app no dia seguinte tem que mostrar o dia novo.
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') route();
+    if (document.visibilityState === 'visible') {
+      route();
+      push.resync().catch(() => {});
+    }
   });
 
   if ('serviceWorker' in navigator && window.isSecureContext) {
     navigator.serviceWorker.register('./sw.js').catch((err) => console.error('SW', err));
+    // Toque numa notificacao com o app ja aberto: o sw.js manda o link pra ca.
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if (e.data?.navigate) location.hash = new URL(e.data.navigate).hash;
+    });
   }
 
   await route();
+  push.resync().catch(() => {});
 }
 
 boot();

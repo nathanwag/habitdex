@@ -1,9 +1,11 @@
 /* Hoje — "o que falta fazer hoje?" */
 
 import * as db from '../db.js';
+import * as push from '../push.js';
 import { dayProgress, streak, todayList } from '../habits.js';
+import { SNOOZE_MIN } from '../reminder.js';
 import {
-  html, raw, setTop, buzz, refresh, APP_NAME,
+  html, raw, setTop, toast, buzz, refresh, isIOS, isStandalone, APP_NAME,
 } from '../ui.js';
 
 export const GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.6-1.5L14.2 2.6h-4l-.3 2.5a7.7 7.7 0 0 0-2.6 1.5l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.6 1.5l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.6-1.5l2.3 1 2-3.4z"/></svg>';
@@ -28,6 +30,75 @@ async function toggle(habitId, done) {
   buzz();
   await db.setCheck(habitId, db.dayOf(), done);
   refresh();
+  // Segura (ou devolve) o lembrete no Worker. Offline nao impede marcar.
+  push.sync().catch(() => {});
+}
+
+// Habito marcado pelo toque na notificacao. A faixa de desfazer/adiar fica
+// enquanto ele continuar marcado e o toque for recente.
+let fromReminder = null;
+const NOTICE_MS = 30 * 60 * 1000;
+
+/** Rota #/feito?habito=<id>&lembrete=<id>, aberta pelo toque na notificacao:
+ *  o iOS nao mostra botoes em web push, entao o toque ja e o "fiz". */
+export async function doneFromReminder(view, params) {
+  const id = params.get('lembrete');
+  const habitId = Number(params.get('habito'));
+  // O mesmo link pode rodar de novo (hashchange e visibilitychange juntos,
+  // recarregar). saveSettings atualiza o cache antes do primeiro await, entao
+  // a segunda passada ja ve o id.
+  if (id && db.settings().lastReminder !== id) {
+    const saved = db.saveSettings({ lastReminder: id });
+    const habit = await db.habit(habitId);
+    if (habit) {
+      buzz();
+      await db.setCheck(habitId, db.dayOf(), true);
+      fromReminder = { habitId, name: habit.name, day: db.dayOf(), at: Date.now() };
+    }
+    await saved;
+    push.sync().catch(() => {});
+  }
+  window.history.replaceState(null, '', '#/');
+  await render(view);
+}
+
+async function undoReminder(snooze) {
+  const { habitId, day } = fromReminder;
+  fromReminder = null;
+  await db.setCheck(habitId, day, false);
+  if (snooze) await db.saveSettings({ snoozed: { habitId, at: new Date().toISOString() } });
+  refresh();
+  push.sync().then(
+    () => toast(snooze ? `Lembro de novo em ${SNOOZE_MIN} min` : 'Desmarcado'),
+    () => toast(snooze ? 'Sem conexão: não deu pra adiar.' : 'Desmarcado'),
+  );
+}
+
+function reminderNotice(list) {
+  const shown = fromReminder && Date.now() - fromReminder.at < NOTICE_MS
+    && list.some((i) => i.habit.id === fromReminder.habitId && i.done);
+  if (!shown) return '';
+  return html`
+    <section class="notice card card__pad">
+      <p><strong>${fromReminder.name}</strong> marcado pelo lembrete.</p>
+      <div class="notice__actions">
+        <button class="btn btn--primary" type="button" data-snooze>Não fiz · adiar ${SNOOZE_MIN} min</button>
+        <button class="btn btn--ghost" type="button" data-undo>Desfazer</button>
+      </div>
+    </section>`;
+}
+
+async function reminderLine() {
+  if (isIOS() && !isStandalone()) {
+    return html`<a class="status" href="#/ajustes">Para receber lembretes, adicione o ${APP_NAME} à Tela de Início.</a>`;
+  }
+  if (!(await push.currentSubscription().catch(() => null))) {
+    return html`<a class="status" href="#/ajustes">Lembretes desligados · <strong>ativar</strong></a>`;
+  }
+  const next = await push.upcoming();
+  return next
+    ? html`<p class="status">Próximo lembrete às <strong>${next.at}</strong>: ${next.names.join(', ')}</p>`
+    : html`<p class="status">Sem mais lembretes hoje.</p>`;
 }
 
 function heroLine(list) {
@@ -73,6 +144,7 @@ export async function render(view) {
 
   const progress = dayProgress(list);
   view.innerHTML = html`
+    ${raw(reminderNotice(list))}
     <section class="hero">
       <div class="hero__num">
         <span class="data hero__total">${list.filter((i) => i.done).length}</span>
@@ -87,11 +159,15 @@ export async function render(view) {
 
     ${list.length ? raw(html`<ul class="card habits">${raw(list.map((i) => habitRow(i, subline(i, checks, today))).join(''))}</ul>`) : ''}
 
+    ${raw(await reminderLine())}
+
     <a class="btn btn--ghost btn--block" href="#/habito/novo">+ Novo hábito</a>
   `;
 
   view.onclick = (e) => {
     const btn = e.target.closest('[data-toggle]');
-    if (btn) toggle(Number(btn.dataset.toggle), btn.getAttribute('aria-pressed') !== 'true');
+    if (btn) { toggle(Number(btn.dataset.toggle), btn.getAttribute('aria-pressed') !== 'true'); return; }
+    if (e.target.closest('[data-snooze]')) { undoReminder(true); return; }
+    if (e.target.closest('[data-undo]')) undoReminder(false);
   };
 }

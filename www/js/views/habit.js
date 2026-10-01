@@ -2,6 +2,7 @@
  * passado marca ou desmarca: é aqui que se completa um dia esquecido. */
 
 import * as db from '../db.js';
+import * as push from '../push.js';
 import { habitHistory, streak } from '../habits.js';
 import {
   html, raw, setTop, buzz, refresh, fmtDay,
@@ -89,5 +90,6 @@ export async function render(view, params) {
     buzz();
     await db.setCheck(id, cell.dataset.day, cell.getAttribute('aria-pressed') !== 'true');
     refresh();
+    push.sync().catch(() => {});
   };
 }

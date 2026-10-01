@@ -4,7 +4,7 @@
  * cache-primeiro com revalidacao. Bumpar VERSION e como se deploya.
  */
 
-const VERSION = 'habitos-v2';
+const VERSION = 'habitos-v3';
 
 // Em localhost o cache atrapalha mais do que ajuda; o SW fica transparente
 // (mas continua exibindo push, pra testar notificacao no desktop).
@@ -20,10 +20,12 @@ const ASSETS = [
   './js/db.js',
   './js/reminder.js',
   './js/habits.js',
+  './js/push.js',
   './js/views/today.js',
   './js/views/habit.js',
   './js/views/habit-form.js',
   './js/views/habits.js',
+  './js/views/settings.js',
 ];
 
 // Cache e so aceleracao: se o CacheStorage falhar, segue sem ele.
@@ -83,5 +85,42 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => null);
     return cached || (await network) || Response.error();
+  })());
+});
+
+/* ---------- Lembretes ----------
+ * O Worker manda o payload no formato do Declarative Web Push
+ * ({ web_push: 8030, notification: {...} }). No iOS 18.4+ o sistema ja sabe
+ * exibi-lo sozinho; aqui e o caminho das versoes anteriores e dos outros
+ * navegadores.
+ *
+ * Todo push TEM que mostrar uma notificacao: o iOS revoga a assinatura de
+ * quem recebe push "silencioso". Por isso ha um texto padrao se o payload
+ * vier estranho. */
+
+self.addEventListener('push', (event) => {
+  let n = {};
+  try { n = event.data?.json()?.notification ?? {}; } catch { /* payload nao-JSON */ }
+  event.waitUntil(self.registration.showNotification(n.title || 'Hábitos', {
+    body: n.body || '',
+    tag: n.tag || 'habito',
+    lang: 'pt-BR',
+    data: { url: n.navigate || self.registration.scope },
+  }));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url || self.registration.scope;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const open = windows.find((w) => 'focus' in w);
+    if (open) {
+      // O link marca o habito (#/feito?habito=...), entao a janela aberta
+      // precisa ir ate ele, nao so ganhar foco.
+      open.postMessage({ navigate: url });
+      return open.focus();
+    }
+    return self.clients.openWindow(url);
   })());
 });

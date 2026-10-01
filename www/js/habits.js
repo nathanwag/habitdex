@@ -107,3 +107,15 @@ export function habitHistory(habit, checks, today, weeks) {
   }
   return { weeks: grid, rate: hits.length ? hits.filter(Boolean).length / hits.length : null };
 }
+
+/** O que o Worker precisa saber pra decidir os lembretes de `day`. */
+export function syncState(checks, day) {
+  const weekCounts = {};
+  for (const c of checks.filter(inWeekOf(day))) weekCounts[c.habitId] = (weekCounts[c.habitId] || 0) + 1;
+  return {
+    day,
+    week: weekOf(day),
+    doneToday: checks.filter((c) => c.day === day).map((c) => c.habitId),
+    weekCounts,
+  };
+}

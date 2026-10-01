@@ -104,14 +104,14 @@ const pad = (n) => String(n).padStart(2, '0');
 const toHHMM = (minutes) => `${pad(Math.floor(minutes / 60))}:${pad(minutes % 60)}`;
 
 /** O proximo lembrete de hoje se nada mais for feito ({ at: 'HH:MM', names }),
- *  ou null. Um vencido e ainda nao enviado e "agora". */
+ *  ou null. E pro app, que nao sabe o que o cron ja enviou: horario que ja
+ *  passou conta como enviado. */
 export function nextReminder(config, state, now) {
   const today = dayOf(now, config.tz, config.dayStart);
   const nowMin = sinceDayStart(localParts(now, config.tz).minutes, config);
   const pending = config.habits
     .map((habit) => ({ habit, when: pendingAt(habit, today, state, config) }))
-    .filter((p) => p.when !== null)
-    .map((p) => ({ ...p, when: Math.max(p.when, nowMin) }));
+    .filter((p) => p.when !== null && p.when > nowMin);
   if (!pending.length) return null;
   const first = Math.min(...pending.map((p) => p.when));
   return {

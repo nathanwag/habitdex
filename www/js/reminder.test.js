@@ -129,14 +129,14 @@ test('o adiamento de ontem nao vale hoje', () => {
   assert.deepEqual(due(config, state, '2026-09-22T09:00:00'), []);
 });
 
-test('o proximo lembrete e o mais cedo ainda pendente hoje, com o nome do habito', () => {
+test('o proximo lembrete e o mais cedo que ainda vai sair hoje, com o nome do habito', () => {
   const ler = { id: 2, name: 'Ler', schedule: { kind: 'daily' }, remindAt: '21:00' };
   const cfg = { ...config, habits: [ler, meditar] };
   assert.deepEqual(nextReminder(cfg, {}, at('2026-09-22T07:00:00')), { at: '08:00', names: ['Meditar'] });
   const sent = { lastSent: { 1: at('2026-09-22T08:00:00').toISOString() } };
   assert.deepEqual(nextReminder(cfg, sent, at('2026-09-22T09:00:00')), { at: '21:00', names: ['Ler'] });
-  // Vencido e ainda nao enviado: e agora.
-  assert.deepEqual(nextReminder(cfg, {}, at('2026-09-22T09:00:00')), { at: '09:00', names: ['Meditar'] });
+  // O app nao sabe o que o cron ja enviou: horario que passou conta como enviado.
+  assert.deepEqual(nextReminder(cfg, {}, at('2026-09-22T09:00:00')), { at: '21:00', names: ['Ler'] });
   assert.equal(nextReminder(cfg, { day: '2026-09-22', doneToday: [1, 2] }, at('2026-09-22T09:00:00')), null);
 });
 
@@ -171,4 +171,12 @@ test('config malformada vinda da rede e recusada sem lancar', () => {
     habit({ schedule: { kind: 'weekly', times: 8 } }),
   ];
   for (const c of broken) assert.notEqual(configError(c), null, JSON.stringify(c));
+});
+
+test('com o adiamento, o proximo lembrete e o fim dele', () => {
+  const state = {
+    lastSent: { 1: at('2026-09-22T08:00:00').toISOString() },
+    snoozed: { habitId: 1, at: at('2026-09-22T08:02:00').toISOString() },
+  };
+  assert.deepEqual(nextReminder(config, state, at('2026-09-22T08:03:00')), { at: '08:12', names: ['Meditar'] });
 });
