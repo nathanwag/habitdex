@@ -1,0 +1,39 @@
+import { buildPushPayload } from '@block65/webcrypto-web-push';
+import { handleApi } from './api.js';
+import { handleCron } from './cron.js';
+
+function makeSend(env) {
+  const vapid = {
+    subject: env.VAPID_SUBJECT,
+    publicKey: env.VAPID_PUBLIC_KEY,
+    privateKey: env.VAPID_PRIVATE_KEY,
+  };
+  return async (subscription, message) => {
+    const payload = await buildPushPayload({
+      data: message,
+      // Lembrete entregue horas depois so atrapalha. O topic e o tag (um por
+      // habito): o push service troca um lembrete pendente pelo novo do mesmo
+      // habito, sem engolir o de outro.
+      options: { ttl: 30 * 60, urgency: 'high', topic: message.notification.tag },
+    }, subscription, vapid);
+    return fetch(subscription.endpoint, payload);
+  };
+}
+
+const deps = (env) => ({
+  kv: env.STATE,
+  token: env.APP_TOKEN,
+  vapidPublicKey: env.VAPID_PUBLIC_KEY,
+  send: makeSend(env),
+});
+
+export default {
+  async fetch(request, env) {
+    if (new URL(request.url).pathname.startsWith('/api/')) return handleApi(request, deps(env));
+    return env.ASSETS.fetch(request);
+  },
+
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(handleCron({ ...deps(env), now: new Date(event.scheduledTime) }));
+  },
+};
