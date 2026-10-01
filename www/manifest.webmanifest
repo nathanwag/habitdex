@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Hábitos",
+  "short_name": "Hábitos",
+  "description": "Marque seus hábitos do dia e receba lembrete dos que faltam.",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#14181f",
+  "theme_color": "#14181f",
+  "categories": ["health", "lifestyle"],
+  "icons": []
+}
