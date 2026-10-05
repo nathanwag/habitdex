@@ -10,7 +10,8 @@
     "dev:worker": "npm --prefix worker run dev",
     "test": "node --test",
     "data": "node scripts/pokedex/index.js",
-    "sprites": "node scripts/sprites/index.js"
+    "sprites": "node scripts/sprites/index.js",
+    "gyms": "node scripts/gyms/index.js"
   },
   "devDependencies": {
     "browser-sync": "^3.0.0"

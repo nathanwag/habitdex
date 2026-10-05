@@ -110,8 +110,7 @@ export function buildPokedex(t) {
   });
 
   const moveNames = new Map(t.move_names.filter((r) => r.local_language_id === EN).map((r) => [r.move_id, r.name]));
-  const used = new Set(pokemon.flatMap((p) => p.moves.map(([, id]) => String(id))));
-  const moves = Object.fromEntries(t.moves.filter((m) => used.has(m.id)).map((m) => [m.id, {
+  const moves = Object.fromEntries(t.moves.map((m) => [m.id, {
     name: moveNames.get(m.id),
     type: typeNames.get(m.type_id),
     power: m.power ? Number(m.power) : null,

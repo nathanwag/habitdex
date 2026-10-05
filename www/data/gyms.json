@@ -1,0 +1,185 @@
+{
+"regions": [
+  {"id": "kanto", "name": "Kanto", "game": "Red/Blue",
+  "gyms": [
+    {"name":"Brock","type":"rock","team":[{"species":74,"level":12,"moves":[33,111]},{"species":95,"level":14,"moves":[33,103,117]}]},
+    {"name":"Misty","type":"water","team":[{"species":120,"level":18,"moves":[33,55]},{"species":121,"level":21,"moves":[33,55,61]}]},
+    {"name":"Lt. Surge","type":"electric","team":[{"species":100,"level":21,"moves":[33,103,49]},{"species":25,"level":18,"moves":[84,45,86,98]},{"species":26,"level":24,"moves":[84,45,85]}]},
+    {"name":"Erika","type":"grass","team":[{"species":71,"level":29,"moves":[75,35,77,79]},{"species":114,"level":24,"moves":[132,20]},{"species":45,"level":29,"moves":[80,77,72,79]}]},
+    {"name":"Koga","type":"poison","team":[{"species":109,"level":37,"moves":[33,108,123,124]},{"species":109,"level":37,"moves":[33,108,123,124]},{"species":89,"level":39,"moves":[50,107,139,124]},{"species":110,"level":43,"moves":[123,124,120,92]}]},
+    {"name":"Sabrina","type":"psychic","team":[{"species":64,"level":38,"moves":[50,105,60,94]},{"species":122,"level":37,"moves":[93,112,113,3]},{"species":49,"level":38,"moves":[77,141,78,60]},{"species":65,"level":43,"moves":[60,149,115,105]}]},
+    {"name":"Blaine","type":"fire","team":[{"species":58,"level":42,"moves":[52,43,36,97]},{"species":77,"level":40,"moves":[39,23,45,83]},{"species":78,"level":42,"moves":[39,23,45,83]},{"species":59,"level":47,"moves":[46,36,126,52]}]},
+    {"name":"Giovanni","type":"ground","team":[{"species":111,"level":45,"moves":[30,23,39]},{"species":51,"level":42,"moves":[45,91,28,163]},{"species":31,"level":44,"moves":[10,39,34,40]},{"species":34,"level":45,"moves":[33,30,37,40]},{"species":112,"level":50,"moves":[23,39,90,32]}]}
+  ],
+  "elite": [
+    {"name":"Lorelei","type":"ice","team":[{"species":87,"level":54,"moves":[45,62,156,36]},{"species":91,"level":53,"moves":[48,128,58,131]},{"species":80,"level":54,"moves":[45,110,94,133]},{"species":124,"level":56,"moves":[8,3,142,37]},{"species":131,"level":56,"moves":[34,109,56,59]}]},
+    {"name":"Bruno","type":"fighting","team":[{"species":95,"level":53,"moves":[88,99,21,106]},{"species":107,"level":55,"moves":[8,9,5,68]},{"species":106,"level":55,"moves":[26,136,116,25]},{"species":95,"level":56,"moves":[88,99,21,106]},{"species":68,"level":58,"moves":[43,116,90,66]}]},
+    {"name":"Agatha","type":"ghost","team":[{"species":94,"level":56,"moves":[109,101,95,138]},{"species":42,"level":56,"moves":[48,109,17,114]},{"species":93,"level":55,"moves":[109,101,95,138]},{"species":24,"level":58,"moves":[44,137,103,51]},{"species":94,"level":60,"moves":[109,101,92,138]}]},
+    {"name":"Lance","type":"dragon","team":[{"species":130,"level":58,"moves":[56,82,43,63]},{"species":148,"level":56,"moves":[97,21,82,63]},{"species":148,"level":56,"moves":[97,21,82,63]},{"species":142,"level":60,"moves":[48,44,36,63]},{"species":149,"level":62,"moves":[97,21,112,63]}]}
+  ],
+  "champion":
+    {"name":"Blue","type":null,"team":[{"species":18,"level":61,"moves":[17,119,143,18]},{"species":65,"level":59,"moves":[60,94,115,105]},{"species":112,"level":61,"moves":[43,39,31,32]},{"species":103,"level":61,"moves":[95,140,23],"starter":"grass"},{"species":103,"level":63,"moves":[95,140,23],"starter":"fire"},{"species":130,"level":63,"moves":[43,63,82,56],"starter":"grass"},{"species":130,"level":61,"moves":[43,63,82,56],"starter":"water"},{"species":59,"level":63,"moves":[36,46,43,52],"starter":"water"},{"species":59,"level":61,"moves":[36,46,43,52],"starter":"fire"},{"species":3,"level":65,"moves":[74,72,75,76],"starter":"water"},{"species":6,"level":65,"moves":[163,99,83,126],"starter":"grass"},{"species":9,"level":65,"moves":[56,44,59,110],"starter":"fire"}]}
+  },
+  {"id": "johto", "name": "Johto", "game": "Gold/Silver",
+  "gyms": [
+    {"name":"Falkner","type":"flying","team":[{"species":16,"level":7,"moves":[33,189]},{"species":17,"level":9,"moves":[33,189,16]}]},
+    {"name":"Bugsy","type":"bug","team":[{"species":11,"level":14,"moves":[33,81,106]},{"species":14,"level":14,"moves":[40,81,106]},{"species":123,"level":16,"moves":[210,98,43]}]},
+    {"name":"Whitney","type":"normal","team":[{"species":35,"level":18,"moves":[227,3,102,118]},{"species":241,"level":20,"moves":[23,213,208,205]}]},
+    {"name":"Morty","type":"ghost","team":[{"species":92,"level":21,"moves":[122,180,212,174]},{"species":93,"level":21,"moves":[95,174,212,101]},{"species":93,"level":23,"moves":[180,212,212,101]},{"species":94,"level":25,"moves":[95,212,247,138]}]},
+    {"name":"Chuck","type":"fighting","team":[{"species":57,"level":27,"moves":[43,99,2,154]},{"species":62,"level":30,"moves":[95,170,57,223]}]},
+    {"name":"Jasmine","type":"steel","team":[{"species":81,"level":30,"moves":[85,48,49,86]},{"species":208,"level":35,"moves":[103,241,88,231]},{"species":81,"level":30,"moves":[85,48,49,86]}]},
+    {"name":"Pryce","type":"ice","team":[{"species":86,"level":27,"moves":[29,196,62,156]},{"species":87,"level":29,"moves":[29,196,62,156]},{"species":221,"level":31,"moves":[196,31,54,59]}]},
+    {"name":"Clair","type":"dragon","team":[{"species":148,"level":37,"moves":[86,57,21,225]},{"species":148,"level":37,"moves":[86,85,21,225]},{"species":148,"level":37,"moves":[86,58,21,225]},{"species":230,"level":40,"moves":[225,57,63,108]}]}
+  ],
+  "elite": [
+    {"name":"Will","type":"psychic","team":[{"species":178,"level":40,"moves":[98,248,94,109]},{"species":103,"level":41,"moves":[115,121,94,73]},{"species":80,"level":41,"moves":[133,174,94,34]},{"species":124,"level":41,"moves":[8,3,94,142]},{"species":178,"level":42,"moves":[98,248,94,109]}]},
+    {"name":"Koga","type":"poison","team":[{"species":168,"level":40,"moves":[169,104,226,202]},{"species":49,"level":41,"moves":[16,48,92,94]},{"species":89,"level":42,"moves":[188,107,92,151]},{"species":205,"level":43,"moves":[191,129,182,153]},{"species":169,"level":44,"moves":[17,104,98,92]}]},
+    {"name":"Bruno","type":"fighting","team":[{"species":237,"level":42,"moves":[98,91,197,228]},{"species":107,"level":42,"moves":[8,7,9,183]},{"species":106,"level":42,"moves":[24,193,136,207]},{"species":95,"level":43,"moves":[157,201,89,20]},{"species":68,"level":46,"moves":[157,193,238,233]}]},
+    {"name":"Karen","type":"dark","team":[{"species":197,"level":42,"moves":[185,109,212,28]},{"species":45,"level":42,"moves":[78,51,80,236]},{"species":94,"level":45,"moves":[122,180,174,194]},{"species":198,"level":44,"moves":[185,18,228,98]},{"species":229,"level":47,"moves":[242,53,46,228]}]}
+  ],
+  "champion":
+    {"name":"Lance","type":"dragon","team":[{"species":130,"level":44,"moves":[240,57,59,63]},{"species":149,"level":47,"moves":[239,86,59,63]},{"species":6,"level":46,"moves":[53,163,17,63]},{"species":142,"level":46,"moves":[157,246,17,63]},{"species":149,"level":47,"moves":[239,86,87,63]},{"species":149,"level":50,"moves":[219,200,126,63]}]}
+  },
+  {"id": "hoenn", "name": "Hoenn", "game": "Ruby/Sapphire",
+  "gyms": [
+    {"name":"Roxanne","type":"rock","team":[{"species":74,"level":14,"moves":[33,111,88,317]},{"species":299,"level":15,"moves":[33,106,88,317]}]},
+    {"name":"Brawly","type":"fighting","team":[{"species":66,"level":17,"moves":[339,43,2,69]},{"species":296,"level":18,"moves":[339,282,292,28]}]},
+    {"name":"Wattson","type":"electric","team":[{"species":81,"level":22,"moves":[84,48,49,86]},{"species":100,"level":20,"moves":[205,209,49,120]},{"species":82,"level":23,"moves":[351,48,49,86]}]},
+    {"name":"Flannery","type":"fire","team":[{"species":218,"level":26,"moves":[315,123,113,241]},{"species":218,"level":26,"moves":[53,157,113,241]},{"species":324,"level":28,"moves":[315,34,175,213]}]},
+    {"name":"Norman","type":"normal","team":[{"species":289,"level":28,"moves":[227,263,281,185]},{"species":288,"level":30,"moves":[163,185,263,227]},{"species":289,"level":31,"moves":[264,303,263,185]}]},
+    {"name":"Winona","type":"flying","team":[{"species":277,"level":31,"moves":[98,332,104,283]},{"species":279,"level":30,"moves":[55,48,263,227]},{"species":227,"level":32,"moves":[28,31,211,332]},{"species":334,"level":33,"moves":[89,225,349,332]}]},
+    {"name":"Tate & Liza","type":"psychic","team":[{"species":337,"level":42,"moves":[113,94,95,347]},{"species":338,"level":42,"moves":[241,76,94,53]}]},
+    {"name":"Wallace","type":"water","team":[{"species":370,"level":40,"moves":[352,213,186,175]},{"species":340,"level":42,"moves":[240,352,89,133]},{"species":364,"level":40,"moves":[227,34,62,352]},{"species":119,"level":42,"moves":[352,240,31,32]},{"species":350,"level":43,"moves":[352,239,105,58]}]}
+  ],
+  "elite": [
+    {"name":"Sidney","type":"dark","team":[{"species":262,"level":46,"moves":[242,36,28,46]},{"species":332,"level":46,"moves":[185,302,178,73]},{"species":275,"level":48,"moves":[252,326,104,207]},{"species":319,"level":48,"moves":[57,242,163,207]},{"species":359,"level":49,"moves":[14,163,332,289]}]},
+    {"name":"Phoebe","type":"ghost","team":[{"species":356,"level":48,"moves":[174,109,248,325]},{"species":354,"level":49,"moves":[180,261,247,185]},{"species":354,"level":49,"moves":[92,285,247,94]},{"species":302,"level":50,"moves":[185,247,94,213]},{"species":356,"level":51,"moves":[109,247,58,89]}]},
+    {"name":"Glacia","type":"ice","team":[{"species":362,"level":50,"moves":[258,113,58,242]},{"species":364,"level":50,"moves":[57,301,258,34]},{"species":364,"level":52,"moves":[258,59,291,213]},{"species":362,"level":52,"moves":[258,58,247,242]},{"species":365,"level":53,"moves":[59,57,34,329]}]},
+    {"name":"Drake","type":"dragon","team":[{"species":372,"level":52,"moves":[337,317,182,242]},{"species":334,"level":54,"moves":[36,225,349,287]},{"species":330,"level":53,"moves":[53,225,242,28]},{"species":330,"level":53,"moves":[19,225,91,201]},{"species":373,"level":53,"moves":[53,337,242,19]}]}
+  ],
+  "champion":
+    {"name":"Steven","type":null,"team":[{"species":227,"level":52,"moves":[211,92,332,191]},{"species":344,"level":55,"moves":[89,246,113,115]},{"species":306,"level":56,"moves":[89,337,87,76]},{"species":346,"level":56,"moves":[246,109,188,202]},{"species":348,"level":56,"moves":[246,163,332,352]},{"species":376,"level":58,"moves":[309,89,94,63]}]}
+  },
+  {"id": "sinnoh", "name": "Sinnoh", "game": "Diamond/Pearl",
+  "gyms": [
+    {"name":"Roark","type":"rock","team":[{"species":74,"level":12,"moves":[88,446]},{"species":95,"level":12,"moves":[88,103,446]},{"species":408,"level":14,"moves":[29,43,228]}]},
+    {"name":"Gardenia","type":"grass","team":[{"species":420,"level":19,"moves":[447,73,219,74]},{"species":387,"level":19,"moves":[75,447,110,115]},{"species":407,"level":22,"moves":[345,447,78,40]}]},
+    {"name":"Maylene","type":"fighting","team":[{"species":307,"level":27,"moves":[93,96,197,409]},{"species":67,"level":27,"moves":[280,43,193,317]},{"species":448,"level":30,"moves":[409,395,232,198]}]},
+    {"name":"Crasher Wake","type":"water","team":[{"species":130,"level":27,"moves":[362,82,44,207]},{"species":195,"level":27,"moves":[426,300,21,39]},{"species":419,"level":30,"moves":[362,423,228,129]}]},
+    {"name":"Fantina","type":"ghost","team":[{"species":426,"level":32,"moves":[466,310,107,16]},{"species":94,"level":34,"moves":[109,421,398,180]},{"species":429,"level":36,"moves":[109,247,60,345]}]},
+    {"name":"Byron","type":"steel","team":[{"species":436,"level":36,"moves":[430,109,326,95]},{"species":208,"level":36,"moves":[360,225,201,423]},{"species":411,"level":39,"moves":[430,334,246,156]}]},
+    {"name":"Candice","type":"ice","team":[{"species":459,"level":38,"moves":[75,275,420,43]},{"species":215,"level":38,"moves":[269,185,419,163]},{"species":308,"level":40,"moves":[339,197,395,8]},{"species":460,"level":42,"moves":[452,320,207,419]}]},
+    {"name":"Volkner","type":"electric","team":[{"species":26,"level":46,"moves":[451,86,113,280]},{"species":424,"level":47,"moves":[226,417,97,351]},{"species":224,"level":47,"moves":[190,451,331,62]},{"species":405,"level":49,"moves":[422,451,86,242]}]}
+  ],
+  "elite": [
+    {"name":"Aaron","type":"bug","team":[{"species":269,"level":53,"moves":[405,92,113,104]},{"species":267,"level":53,"moves":[405,94,412,247]},{"species":214,"level":54,"moves":[224,370,444,400]},{"species":416,"level":54,"moves":[454,455,456,408]},{"species":452,"level":57,"moves":[440,404,332,423]}]},
+    {"name":"Bertha","type":"ground","team":[{"species":195,"level":55,"moves":[182,201,91,104]},{"species":185,"level":56,"moves":[389,359,201,89]},{"species":340,"level":55,"moves":[157,90,428,401]},{"species":76,"level":56,"moves":[360,280,89,201]},{"species":450,"level":59,"moves":[89,174,444,242]}]},
+    {"name":"Flint","type":"fire","team":[{"species":78,"level":58,"moves":[241,394,76,340]},{"species":426,"level":58,"moves":[104,226,466,261]},{"species":208,"level":57,"moves":[241,424,317,103]},{"species":428,"level":57,"moves":[204,243,241,7]},{"species":392,"level":61,"moves":[394,9,89,183]}]},
+    {"name":"Lucian","type":"psychic","team":[{"species":122,"level":59,"moves":[94,113,115,85]},{"species":203,"level":59,"moves":[94,458,247,242]},{"species":308,"level":60,"moves":[409,8,7,9]},{"species":65,"level":60,"moves":[94,411,105,412]},{"species":437,"level":63,"moves":[94,360,347,89]}]}
+  ],
+  "champion":
+    {"name":"Cynthia","type":null,"team":[{"species":442,"level":61,"moves":[373,399,318,94]},{"species":407,"level":60,"moves":[412,188,247,326]},{"species":448,"level":64,"moves":[396,406,94,89]},{"species":423,"level":60,"moves":[330,188,444,89]},{"species":350,"level":63,"moves":[392,57,243,58]},{"species":445,"level":66,"moves":[407,280,89,416]}]}
+  },
+  {"id": "unova", "name": "Unova", "game": "Black",
+  "gyms": [
+    {"name":"Chili, Cress or Cilan","type":null,"team":[{"species":506,"level":12,"moves":[44,526]},{"species":513,"level":14,"moves":[510,526],"starter":"grass"},{"species":515,"level":14,"moves":[55,526],"starter":"fire"},{"species":511,"level":14,"moves":[22,526],"starter":"water"}]},
+    {"name":"Lenora","type":"normal","team":[{"species":507,"level":18,"moves":[36,44,514,43]},{"species":505,"level":20,"moves":[43,242,514,95]}]},
+    {"name":"Burgh","type":"bug","team":[{"species":544,"level":21,"moves":[342,522,103,228]},{"species":557,"level":21,"moves":[479,522,28,185]},{"species":542,"level":23,"moves":[75,182,81,522]}]},
+    {"name":"Elesa","type":"electric","team":[{"species":587,"level":25,"moves":[521,332,228,98]},{"species":587,"level":25,"moves":[521,332,228,98]},{"species":523,"level":27,"moves":[488,209,521,98]}]},
+    {"name":"Clay","type":"ground","team":[{"species":552,"level":29,"moves":[207,242,523,259]},{"species":536,"level":29,"moves":[392,523,330,61]},{"species":530,"level":31,"moves":[468,163,157,523]}]},
+    {"name":"Skyla","type":"flying","team":[{"species":528,"level":33,"moves":[133,531,512,372]},{"species":521,"level":33,"moves":[98,13,403,43]},{"species":581,"level":35,"moves":[392,332,403,61]}]},
+    {"name":"Brycen","type":"ice","team":[{"species":583,"level":37,"moves":[524,151,310,429]},{"species":614,"level":39,"moves":[207,556,163,362]},{"species":615,"level":37,"moves":[62,115,524,229]}]},
+    {"name":"Drayden","type":"dragon","team":[{"species":611,"level":41,"moves":[525,349,372,82]},{"species":621,"level":41,"moves":[400,279,525,498]},{"species":612,"level":43,"moves":[525,349,163,372]}]}
+  ],
+  "elite": [
+    {"name":"Shauntal","type":"ghost","team":[{"species":563,"level":48,"moves":[94,261,247,447]},{"species":593,"level":48,"moves":[247,57,412,362]},{"species":623,"level":48,"moves":[174,280,89,325]},{"species":609,"level":50,"moves":[126,94,247,371]}]},
+    {"name":"Grimsley","type":"dark","team":[{"species":560,"level":48,"moves":[28,242,398,280]},{"species":553,"level":48,"moves":[242,337,492,89]},{"species":510,"level":48,"moves":[252,213,332,400]},{"species":625,"level":50,"moves":[404,400,232,332]}]},
+    {"name":"Caitlin","type":"psychic","team":[{"species":579,"level":48,"moves":[412,87,411,94]},{"species":561,"level":48,"moves":[403,247,58,94]},{"species":518,"level":48,"moves":[247,94,451,115]},{"species":576,"level":50,"moves":[347,85,94,247]}]},
+    {"name":"Marshal","type":"fighting","team":[{"species":538,"level":48,"moves":[444,371,523,480]},{"species":539,"level":48,"moves":[444,2,447,514]},{"species":534,"level":48,"moves":[444,359,514,447]},{"species":620,"level":50,"moves":[369,26,157,514]}]}
+  ],
+  "champion":
+    {"name":"Alder","type":null,"team":[{"species":617,"level":75,"moves":[405,411,382,412]},{"species":626,"level":75,"moves":[543,224,444,89]},{"species":621,"level":75,"moves":[400,371,200,276]},{"species":584,"level":75,"moves":[59,113,430,151]},{"species":589,"level":75,"moves":[404,416,442,332]},{"species":637,"level":77,"moves":[315,63,405,483]}]}
+  },
+  {"id": "kalos", "name": "Kalos", "game": "X/Y",
+  "gyms": [
+    {"name":"Viola","type":"bug","team":[{"species":283,"level":10,"moves":[98,145,346]},{"species":666,"level":12,"moves":[611,106,33]}]},
+    {"name":"Grant","type":"rock","team":[{"species":698,"level":25,"moves":[62,317,86,36]},{"species":696,"level":25,"moves":[317,44,23]}]},
+    {"name":"Korrina","type":"fighting","team":[{"species":619,"level":29,"moves":[612,252,3]},{"species":67,"level":28,"moves":[612,317,43]},{"species":701,"level":32,"moves":[560,468,612]}]},
+    {"name":"Ramos","type":"grass","team":[{"species":189,"level":30,"moves":[447,512,73]},{"species":70,"level":31,"moves":[447,51,77,380]},{"species":673,"level":34,"moves":[447,523,36]}]},
+    {"name":"Clemont","type":"electric","team":[{"species":587,"level":35,"moves":[521,98,332]},{"species":82,"level":35,"moves":[85,604,429]},{"species":695,"level":37,"moves":[85,98,447]}]},
+    {"name":"Valerie","type":"fairy","team":[{"species":303,"level":38,"moves":[185,242,334]},{"species":122,"level":39,"moves":[113,115,94,605]},{"species":700,"level":42,"moves":[605,204,98,129]}]},
+    {"name":"Olympia","type":"psychic","team":[{"species":561,"level":44,"moves":[403,94,113,115]},{"species":199,"level":45,"moves":[94,347,408,281]},{"species":678,"level":48,"moves":[94,347,252,247]}]},
+    {"name":"Wulfric","type":"ice","team":[{"species":460,"level":56,"moves":[58,420,412]},{"species":615,"level":55,"moves":[58,258,109,430]},{"species":713,"level":59,"moves":[419,242,174,360]}]}
+  ],
+  "elite": [
+    {"name":"Malva","type":"fire","team":[{"species":668,"level":63,"moves":[568,304,53,528]},{"species":324,"level":63,"moves":[174,89,444,172]},{"species":609,"level":63,"moves":[109,247,53,590]},{"species":663,"level":65,"moves":[413,394,98,175]}]},
+    {"name":"Siebold","type":"water","team":[{"species":693,"level":63,"moves":[352,399,406,396]},{"species":130,"level":63,"moves":[127,423,89,349]},{"species":121,"level":63,"moves":[94,113,605,57]},{"species":689,"level":65,"moves":[238,444,534,404]}]},
+    {"name":"Wikstrom","type":"steel","team":[{"species":707,"level":63,"moves":[605,430,259,191]},{"species":476,"level":63,"moves":[414,408,435,430]},{"species":212,"level":63,"moves":[418,442,404,400]},{"species":681,"level":65,"moves":[588,442,533,421]}]},
+    {"name":"Drasna","type":"dragon","team":[{"species":691,"level":63,"moves":[406,57,188,85]},{"species":621,"level":63,"moves":[525,279,514,498]},{"species":334,"level":63,"moves":[585,406,538,47]},{"species":715,"level":65,"moves":[403,406,53,162]}]}
+  ],
+  "champion":
+    {"name":"Diantha","type":null,"team":[{"species":701,"level":64,"moves":[14,560,404,398]},{"species":697,"level":65,"moves":[457,89,337,242]},{"species":699,"level":65,"moves":[87,59,113,115]},{"species":711,"level":65,"moves":[567,566,425,402]},{"species":706,"level":66,"moves":[406,330,126,411]},{"species":282,"level":68,"moves":[585,94,247,85]}]}
+  },
+  {"id": "alola", "name": "Alola", "game": "Sun/Moon",
+  "gyms": [
+    {"name":"Ilima","type":"normal","team":[{"species":734,"level":9,"moves":[33,228,43]},{"species":235,"level":10,"moves":[52,33],"starter":"grass"},{"species":235,"level":10,"moves":[55,33],"starter":"fire"},{"species":235,"level":10,"moves":[670,33],"starter":"water"}]},
+    {"name":"Island Kahuna Hala","type":"fighting","team":[{"species":56,"level":14,"moves":[2,116,228]},{"species":296,"level":14,"moves":[252,28,292]},{"species":739,"level":15,"moves":[612,228,43]}]},
+    {"name":"Lana's trial","type":"water","team":[{"species":746,"level":20,"moves":[55,240,487,45]},{"species":746,"level":18,"moves":[270,185,362,392]},{"species":594,"level":18,"moves":[270,3,505,55]}]},
+    {"name":"Kiawe's trial","type":"fire","team":[{"species":758,"level":22,"moves":[259,481,599,92]},{"species":757,"level":20,"moves":[139,474,269,10]}]},
+    {"name":"Mallow's Trial","type":"grass","team":[{"species":754,"level":24,"moves":[75,404,669,235]},{"species":732,"level":22,"moves":[350,365,48,103]},{"species":351,"level":22,"moves":[241,55,29,311]}]},
+    {"name":"Island Kahuna Olivia","type":"rock","team":[{"species":299,"level":25,"moves":[157,209,86]},{"species":525,"level":26,"moves":[350,189,29]},{"species":745,"level":26,"moves":[44,88]}]},
+    {"name":"Sophocles' Trial","type":"electric","team":[{"species":738,"level":29,"moves":[11,268,209,450]},{"species":737,"level":28,"moves":[86,81,189,11]},{"species":737,"level":28,"moves":[44,86,209]}]},
+    {"name":"Acerola's Trial","type":"ghost","team":[{"species":778,"level":33,"moves":[583,421,310,102]},{"species":93,"level":27,"moves":[95,389,101,122]},{"species":94,"level":27,"moves":[247,95,101,325]}]},
+    {"name":"Island Kahuna Nanu","type":"dark","team":[{"species":302,"level":38,"moves":[408,247,252]},{"species":552,"level":38,"moves":[242,372,207,89]},{"species":53,"level":39,"moves":[408,252,399]}]},
+    {"name":"Island Kahuna Hapu","type":"ground","team":[{"species":51,"level":47,"moves":[442,89,389,201]},{"species":423,"level":47,"moves":[330,426,105]},{"species":330,"level":47,"moves":[414,225]},{"species":750,"level":48,"moves":[484,89,24,68]}]}
+  ],
+  "elite": [
+    {"name":"Hala","type":"fighting","team":[{"species":297,"level":54,"moves":[252,370,282]},{"species":57,"level":54,"moves":[238,200,386,228]},{"species":760,"level":54,"moves":[359,693]},{"species":62,"level":54,"moves":[127,66]},{"species":740,"level":55,"moves":[665,370]}]},
+    {"name":"Olivia","type":"rock","team":[{"species":369,"level":54,"moves":[56,246,281]},{"species":703,"level":54,"moves":[408,585,115]},{"species":76,"level":54,"moves":[9,350,537]},{"species":476,"level":54,"moves":[414,408,86,201]},{"species":745,"level":55,"moves":[242,444,68,431]}]},
+    {"name":"Acerola","type":"ghost","team":[{"species":302,"level":54,"moves":[421,428,109,252]},{"species":426,"level":54,"moves":[466,116,133,226]},{"species":781,"level":54,"moves":[21,247,412,250]},{"species":478,"level":54,"moves":[59,247,109,420]},{"species":770,"level":55,"moves":[247,414,202,334]}]},
+    {"name":"Kahili","type":"flying","team":[{"species":227,"level":54,"moves":[163,211,364,191]},{"species":169,"level":54,"moves":[403,129,48,305]},{"species":741,"level":54,"moves":[686,298,403,297]},{"species":630,"level":54,"moves":[198,413,386,260]},{"species":733,"level":55,"moves":[331,350,690,103]}]}
+  ],
+  "champion":
+    {"name":"Kukui","type":null,"team":[{"species":745,"level":57,"moves":[444,709,242,446]},{"species":38,"level":56,"moves":[605,59,420,219]},{"species":628,"level":56,"moves":[306,413,366,18]},{"species":462,"level":56,"moves":[85,430,86,243]},{"species":143,"level":56,"moves":[34,242,484,667]},{"species":727,"level":58,"moves":[394,663,200,238],"starter":"grass"},{"species":730,"level":58,"moves":[664,585,453,304],"starter":"fire"},{"species":724,"level":58,"moves":[348,662,413,389],"starter":"water"}]}
+  },
+  {"id": "galar", "name": "Galar", "game": "Sword",
+  "gyms": [
+    {"name":"Milo","type":"grass","team":[{"species":829,"level":19,"moves":[345,496,229]},{"species":830,"level":20,"moves":[345,496,670]}]},
+    {"name":"Nessa","type":"water","team":[{"species":118,"level":22,"moves":[352,250,30,97]},{"species":846,"level":23,"moves":[453,44,250,31]},{"species":834,"level":24,"moves":[534,55,44,29]}]},
+    {"name":"Kabu","type":"fire","team":[{"species":38,"level":25,"moves":[261,83,98,52]},{"species":59,"level":25,"moves":[261,172,44,97]},{"species":851,"level":27,"moves":[172,489,450,108]}]},
+    {"name":"Bea","type":"fighting","team":[{"species":237,"level":34,"moves":[167,98,68,279]},{"species":675,"level":34,"moves":[418,509,400,526]},{"species":865,"level":35,"moves":[197,14,693,279]},{"species":68,"level":36,"moves":[184,279,282,70]}]},
+    {"name":"Opal","type":"fairy","team":[{"species":110,"level":36,"moves":[124,584,33]},{"species":303,"level":36,"moves":[577,242,334,310]},{"species":468,"level":37,"moves":[403,577,246]},{"species":869,"level":38,"moves":[577,151,186]}]},
+    {"name":"Gordie","type":"rock","team":[{"species":689,"level":40,"moves":[504,317,534]},{"species":213,"level":40,"moves":[471,444,522,317]},{"species":874,"level":41,"moves":[446,317,34,472]},{"species":839,"level":42,"moves":[749,446,535,317]}]},
+    {"name":"Piers","type":"dark","team":[{"species":560,"level":44,"moves":[252,28,280,371]},{"species":687,"level":45,"moves":[400,492,427,371]},{"species":435,"level":45,"moves":[389,103,92,555]},{"species":862,"level":46,"moves":[792,675,68,421]}]},
+    {"name":"Raihan","type":"dragon","team":[{"species":526,"level":46,"moves":[446,328,350,776]},{"species":330,"level":47,"moves":[9,784,242,211]},{"species":844,"level":46,"moves":[182,137,424,414]},{"species":884,"level":48,"moves":[784,776,444,442]}]}
+  ],
+  "elite": [
+    {"name":"Nessa","type":"water","team":[{"species":768,"level":51,"moves":[660,710,14,421]},{"species":279,"level":51,"moves":[355,403,352,366]},{"species":847,"level":52,"moves":[710,675,423,529]},{"species":119,"level":52,"moves":[684,224,392,127]},{"species":834,"level":53,"moves":[710,746,317,242]}]},
+    {"name":"Bea","type":"fighting","team":[{"species":701,"level":52,"moves":[560,136,340]},{"species":853,"level":52,"moves":[753,66,20,5]},{"species":865,"level":53,"moves":[348,21,280,693]},{"species":870,"level":53,"moves":[748,339,370,317]},{"species":68,"level":54,"moves":[238,279,7,70]}]},
+    {"name":"Raihan","type":"dragon","team":[{"species":324,"level":53,"moves":[436,776,76,281]},{"species":706,"level":54,"moves":[240,57,87,330]},{"species":776,"level":54,"moves":[241,406,704,126]},{"species":330,"level":54,"moves":[201,337,89,242]},{"species":884,"level":55,"moves":[337,776,444,442]}]}
+  ],
+  "champion":
+    {"name":"Champion Leon","type":null,"team":[{"species":681,"level":62,"moves":[588,247,533,430]},{"species":887,"level":62,"moves":[247,53,85,225]},{"species":612,"level":63,"moves":[398,231,200,89]},{"species":537,"level":64,"moves":[92,409,710,89],"starter":"grass"},{"species":866,"level":64,"moves":[298,94,573,85],"starter":"fire"},{"species":464,"level":64,"moves":[89,444,224,535],"starter":"water"},{"species":815,"level":64,"moves":[780,364,512,98],"starter":"grass"},{"species":818,"level":64,"moves":[745,399,341,715],"starter":"fire"},{"species":812,"level":64,"moves":[778,282,667,283],"starter":"water"},{"species":6,"level":65,"moves":[126,403,76,246]}]}
+  },
+  {"id": "paldea", "name": "Paldea", "game": "Scarlet/Violet",
+  "gyms": [
+    {"name":"Katy","type":"bug","team":[{"species":919,"level":14,"moves":[522,24]},{"species":917,"level":14,"moves":[450,372]},{"species":216,"level":15,"moves":[210,154]}]},
+    {"name":"Brassius","type":"grass","team":[{"species":548,"level":16,"moves":[79,72]},{"species":928,"level":16,"moves":[33,75]},{"species":185,"level":17,"moves":[885,88]}]},
+    {"name":"Iono","type":"electric","team":[{"species":940,"level":23,"moves":[365,98,209]},{"species":939,"level":23,"moves":[55,209]},{"species":404,"level":23,"moves":[209,44]},{"species":429,"level":24,"moves":[451,506,109]}]},
+    {"name":"Kofu","type":"water","team":[{"species":976,"level":29,"moves":[163,365,895]},{"species":961,"level":29,"moves":[189,352,29]},{"species":740,"level":30,"moves":[152,249,21]}]},
+    {"name":"Larry","type":"normal","team":[{"species":775,"level":35,"moves":[281,389,21]},{"species":982,"level":35,"moves":[887,529,137]},{"species":398,"level":36,"moves":[263,332]}]},
+    {"name":"Ryme","type":"ghost","team":[{"species":354,"level":41,"moves":[196,389,425]},{"species":778,"level":41,"moves":[113,425,163]},{"species":972,"level":41,"moves":[583,242,566]},{"species":849,"level":42,"moves":[435,506,304]}]},
+    {"name":"Tulip","type":"psychic","team":[{"species":981,"level":44,"moves":[242,428,115]},{"species":282,"level":44,"moves":[94,605,412]},{"species":956,"level":44,"moves":[94,98,247]},{"species":671,"level":45,"moves":[94,585,572]}]},
+    {"name":"Grusha","type":"ice","team":[{"species":873,"level":47,"moves":[59,405,366]},{"species":614,"level":47,"moves":[453,556,89]},{"species":975,"level":47,"moves":[861,710,420]},{"species":334,"level":48,"moves":[58,406,585,542]}]}
+  ],
+  "elite": [
+    {"name":"Rika","type":"ground","team":[{"species":340,"level":57,"moves":[330,414,59,248]},{"species":323,"level":57,"moves":[414,126,430,281]},{"species":232,"level":57,"moves":[89,444,442,398]},{"species":51,"level":57,"moves":[89,157,389,201]},{"species":980,"level":58,"moves":[89,710,92,182]}]},
+    {"name":"Poppy","type":"steel","team":[{"species":879,"level":58,"moves":[667,583,484,446]},{"species":462,"level":58,"moves":[435,430,113,161]},{"species":437,"level":58,"moves":[442,428,350,89]},{"species":823,"level":58,"moves":[413,442,776,334]},{"species":959,"level":58,"moves":[583,893,280,444]}]},
+    {"name":"Larry","type":"flying","team":[{"species":357,"level":59,"moves":[403,76,406,241]},{"species":741,"level":59,"moves":[686,403,298,196]},{"species":334,"level":59,"moves":[585,53,58,406]},{"species":398,"level":59,"moves":[263,413,370,168]},{"species":973,"level":60,"moves":[413,370,675,710]}]},
+    {"name":"Hassel","type":"dragon","team":[{"species":715,"level":60,"moves":[403,406,162,304]},{"species":612,"level":60,"moves":[337,242,442,317]},{"species":691,"level":60,"moves":[188,406,56,85]},{"species":841,"level":60,"moves":[407,402,332,73]},{"species":998,"level":61,"moves":[556,280,862]}]}
+  ],
+  "champion":
+    {"name":"Geeta","type":null,"team":[{"species":956,"level":61,"moves":[855,605,98,115]},{"species":673,"level":61,"moves":[532,428,583,339]},{"species":976,"level":61,"moves":[453,710,427,423]},{"species":713,"level":61,"moves":[419,242,89,776]},{"species":983,"level":61,"moves":[442,869,428,444]},{"species":970,"level":62,"moves":[851,482,414,605]}]}
+  }
+]
+}

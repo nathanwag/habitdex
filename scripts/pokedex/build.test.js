@@ -147,7 +147,8 @@ test('os golpes sao os aprendidos por nivel no jogo principal mais recente da es
   assert.deepEqual(byId.get(1).moves, [[1, 33], [3, 22]]);
   // Charmander nao tem dados de scarlet-violet: fica o sword-shield.
   assert.deepEqual(byId.get(4).moves, [[1, 10], [4, 52]]);
-  assert.deepEqual(Object.keys(dex.moves).sort(), ['10', '22', '33', '52']);
+  // Todos os golpes entram: os times dos ginasios usam golpes de TM e de jogos antigos.
+  assert.deepEqual(Object.keys(dex.moves).sort(), ['10', '22', '33', '45', '52', '75', '92']);
   assert.deepEqual(dex.moves[22], { name: 'Vine Whip', type: 'grass', power: 45, accuracy: 100, pp: 25, class: 'physical' });
   assert.equal(dex.moves[52].class, 'special');
 });

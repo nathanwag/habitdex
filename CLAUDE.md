@@ -26,6 +26,7 @@ npm run dev                      # UI com live reload (browser-sync, sem API)
 npm run dev:worker               # wrangler dev: app + API + cron (precisa de worker/.dev.vars)
 npm run data                     # regera www/data/pokedex.json (CSVs da PokeAPI)
 npm run sprites                  # regera www/sprites/ e www/data/sprites.json; roda depois do data
+npm run gyms                     # regera www/data/gyms.json (times dos jogos, nuzlocke.data)
 ```
 
 ## Tema Pokémon (em construção)
@@ -36,7 +37,8 @@ versionados no repo (sprites ~140 MB); não edite à mão.
 
 - **`www/data/pokedex.json`**: `types`, `efficacy` (`efficacy.fire.grass === 2`,
   ausente = 1), `growth` (XP acumulado por nível, índice = nível − 1), `moves`
-  (por id) e `pokemon` (1025 espécies, forma padrão). `moves` de cada pokémon é
+  (por id, todos, porque os chefes usam golpes de TM e de jogos antigos) e
+  `pokemon` (1025 espécies, forma padrão). `moves` de cada pokémon é
   `[nível, idGolpe]` do jogo principal mais recente; nível 0 = ao evoluir.
   Nomes em inglês: a PokeAPI não tem pt-BR.
 - **Evoluções** valem só partindo da forma padrão. Dez espécies (Obstagoon,
@@ -46,6 +48,12 @@ versionados no repo (sprites ~140 MB); não edite à mão.
   Showdown (espelho no repo de sprites da PokeAPI): um loop parado, sem golpe
   nem dano (isso é CSS). `www/data/sprites.json` (`ids`) lista quem tem os
   dois; 14 da Gen 9 não têm (990–995, 1006, 1008, 1010, 1017, 1022–1025).
+- **`www/data/gyms.json`**: `regions` na ordem dos jogos (Kanto → Paldea), cada
+  uma com `gyms`, `elite` e `champion`; o chefe é `{ name, type, team }` e o
+  time é `{ species, level, moves, starter? }`. `starter` (`fire`/`water`/
+  `grass`) marca a variante do time que depende do inicial do jogador. Versões
+  Black e Sword; Alola usa as 10 provas e Galar os finalistas da Champion Cup.
+  Níveis são os originais de cada jogo (cada região recomeça baixo).
 - **Sprites ficam no cache `SPRITES` do `sw.js`**, fora do `VERSION`, para não
   serem baixados de novo a cada deploy. Não entram no `ASSETS`.
 
@@ -135,7 +143,8 @@ Só os módulos puros e o Worker são testados. Os seams são:
   `syncState`
 - `worker/src/api.js` (`handleApi`) e `cron.js` (`handleCron`), com KV e
   `send` falsos
-- `scripts/pokedex/build.js` (`parseCsv`, `buildPokedex`); download e
+- `scripts/pokedex/build.js` (`parseCsv`, `buildPokedex`) e
+  `scripts/gyms/build.js` (`buildLeague`); download e
   gravação (inclusive `scripts/sprites/`) não têm teste
 
 Para um teste de ponta a ponta do cron sem iPhone, rode `wrangler dev`, faça o
