@@ -79,6 +79,8 @@ Requer iOS 16.4 ou mais novo.
 npm test             # testes (node --test): agenda e lembretes, contas dos hábitos, cron, API
 npm run dev          # só a interface, com live reload (/phone = moldura de celular)
 npm run dev:worker   # app + API + cron em http://localhost:8787 (wrangler dev)
+npm run data         # regera a Pokédex (www/data/pokedex.json) a partir da PokeAPI
+npm run sprites      # regera os sprites (www/sprites, ~140 MB) a partir do Showdown
 ```
 
 O `dev:worker` precisa de um `worker/.dev.vars` (fica fora do git) com

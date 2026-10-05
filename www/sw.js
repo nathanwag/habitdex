@@ -4,7 +4,10 @@
  * cache-primeiro com revalidacao. Bumpar VERSION e como se deploya.
  */
 
-const VERSION = 'habitos-v4';
+const VERSION = 'habitos-v5';
+// Os sprites (milhares, baixados sob demanda) ficam fora do VERSION para nao
+// serem apagados e baixados de novo a cada deploy.
+const SPRITES = 'habitos-sprites-v1';
 
 // Em localhost o cache atrapalha mais do que ajuda; o SW fica transparente
 // (mas continua exibindo push, pra testar notificacao no desktop).
@@ -50,7 +53,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = (await quiet(caches.keys())) || [];
-    await Promise.all(keys.filter((k) => k !== VERSION).map((k) => quiet(caches.delete(k))));
+    await Promise.all(keys.filter((k) => k !== VERSION && k !== SPRITES).map((k) => quiet(caches.delete(k))));
     await self.clients.claim();
   })());
 });
@@ -76,11 +79,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  const store = url.pathname.includes('/sprites/') ? SPRITES : VERSION;
   event.respondWith((async () => {
     const cached = await quiet(caches.match(req));
     const network = fetch(req)
       .then((res) => {
-        if (res && res.ok) quiet(caches.open(VERSION).then((c) => c.put(req, res.clone())));
+        if (res && res.ok) quiet(caches.open(store).then((c) => c.put(req, res.clone())));
         return res;
       })
       .catch(() => null);

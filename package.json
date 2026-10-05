@@ -9,7 +9,8 @@
     "dev": "browser-sync start --config bs-config.cjs",
     "dev:worker": "npm --prefix worker run dev",
     "test": "node --test",
-    "data": "node scripts/pokedex/index.js"
+    "data": "node scripts/pokedex/index.js",
+    "sprites": "node scripts/sprites/index.js"
   },
   "devDependencies": {
     "browser-sync": "^3.0.0"

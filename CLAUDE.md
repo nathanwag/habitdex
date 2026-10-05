@@ -20,11 +20,34 @@ Tudo sai num único deploy (`.github/workflows/deploy.yml`, push na `main`).
 ## Comandos
 
 ```bash
-npm test                         # node --test: www/js/*.test.js e worker/src/*.test.js
+npm test                         # node --test: www/js, worker/src e scripts/*
 node --test worker/src/cron.test.js
 npm run dev                      # UI com live reload (browser-sync, sem API)
 npm run dev:worker               # wrangler dev: app + API + cron (precisa de worker/.dev.vars)
+npm run data                     # regera www/data/pokedex.json (CSVs da PokeAPI)
+npm run sprites                  # regera www/sprites/ e www/data/sprites.json; roda depois do data
 ```
+
+## Tema Pokémon (em construção)
+
+O app está virando um jogo de Pokémon (uso pessoal; arte e nomes são da
+Nintendo/Game Freak, não publicar). Dados e sprites são gerados por script e
+versionados no repo (sprites ~140 MB); não edite à mão.
+
+- **`www/data/pokedex.json`**: `types`, `efficacy` (`efficacy.fire.grass === 2`,
+  ausente = 1), `growth` (XP acumulado por nível, índice = nível − 1), `moves`
+  (por id) e `pokemon` (1025 espécies, forma padrão). `moves` de cada pokémon é
+  `[nível, idGolpe]` do jogo principal mais recente; nível 0 = ao evoluir.
+  Nomes em inglês: a PokeAPI não tem pt-BR.
+- **Evoluções** valem só partindo da forma padrão. Dez espécies (Obstagoon,
+  Perrserker, Cursola, Sirfetch'd, Mr. Rime, Runerigus, Basculegion, Sneasler,
+  Overqwil, Clodsire) só evoluem de forma regional e ficam sem caminho.
+- **`www/sprites/<id>/{front,back}.gif`** são os animados 3D do Pokémon
+  Showdown (espelho no repo de sprites da PokeAPI): um loop parado, sem golpe
+  nem dano (isso é CSS). `www/data/sprites.json` (`ids`) lista quem tem os
+  dois; 14 da Gen 9 não têm (990–995, 1006, 1008, 1010, 1017, 1022–1025).
+- **Sprites ficam no cache `SPRITES` do `sw.js`**, fora do `VERSION`, para não
+  serem baixados de novo a cada deploy. Não entram no `ASSETS`.
 
 ## Modelo
 
@@ -112,6 +135,8 @@ Só os módulos puros e o Worker são testados. Os seams são:
   `syncState`
 - `worker/src/api.js` (`handleApi`) e `cron.js` (`handleCron`), com KV e
   `send` falsos
+- `scripts/pokedex/build.js` (`parseCsv`, `buildPokedex`); download e
+  gravação (inclusive `scripts/sprites/`) não têm teste
 
 Para um teste de ponta a ponta do cron sem iPhone, rode `wrangler dev`, faça o
 sync com uma assinatura P-256 válida e dispare o cron pela URL
