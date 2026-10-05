@@ -246,3 +246,43 @@ test('o resumo do ultimo dia fechado diz se bateu a meta', () => {
   assert.deepEqual(state.lastDay, { day: '2026-10-04', progress: 0, met: false });
   assert.equal(play(started(), dex).lastDay, null);
 });
+
+test('cada dia na meta da um Doce Raro, ja no dia', () => {
+  // 03/10 na meta, 04/10 em branco, hoje (05/10) na meta.
+  const state = play(started('2026-10-03', { checks: [check(1, '2026-10-03'), check(1, '2026-10-05')] }), dex);
+  assert.equal(state.candies, 2);
+});
+
+test('o Doce Raro sobe 1 nivel de quem esta abaixo do mais alto do time, ate empatar; no mais alto, nao vale', () => {
+  const candy = (uid) => ({ type: 'candy', day: '2026-10-03', uid });
+  const state = play(started('2026-10-01', {
+    today: '2026-10-03',
+    checks: everyDay('2026-10-01', '2026-10-03'),
+    events: [
+      { type: 'start', day: '2026-10-01', species: 4 },
+      { type: 'catch', day: '2026-10-02', species: 16, level: 3, caught: true },
+      candy(2), candy(2), candy(2), candy(1),
+    ],
+  }), dex);
+  // Charmander: 1 + 3 dias = 4. Pidgey: entra no 1 em 02/10, sobe em 03/10
+  // (2) e com dois doces empata no 4; o terceiro e o do Charmander nao valem.
+  assert.deepEqual(state.party.map((m) => m.level), [4, 4]);
+  assert.equal(state.candies, 3 - 2);
+});
+
+test('voce escolhe quem fica no time e em que ordem; o resto vai para a caixa', () => {
+  const catches = Array.from({ length: 6 }, () => ({ type: 'catch', day: '2026-10-01', species: 16, level: 3, caught: true }));
+  const state = play(started('2026-10-01', {
+    today: '2026-10-02',
+    checks: everyDay('2026-10-01', '2026-10-02'),
+    events: [
+      { type: 'start', day: '2026-10-01', species: 4 },
+      ...catches,
+      { type: 'party', day: '2026-10-02', uids: [7, 1, 3, 4, 5, 6] },
+    ],
+  }), dex);
+  assert.deepEqual(state.party.map((m) => m.uid), [7, 1, 3, 4, 5, 6]);
+  assert.deepEqual(state.box, [{ uid: 2, species: 16, level: 1 }]);
+  // O 7 entrou no time e subiu em 02/10; o 2 foi para a caixa e congelou.
+  assert.equal(state.party[0].level, 2);
+});

@@ -31,6 +31,7 @@ export function play(input, dex) {
   const hall = [];
   let nextUid = 1;
   let balls = START_BALLS;
+  let candies = 0;
   let lastDay = null;
   const caught = new Set();
   const seen = new Set();
@@ -63,6 +64,7 @@ export function play(input, dex) {
   const levelUp = (day) => {
     const progress = progressOf(day);
     if (progress === null || progress < input.goal) return;
+    candies++;
     // Quem foi pego hoje entra no nivel da captura: a meta ja estava batida.
     for (const mon of party.filter((m) => m.caughtOn !== day)) {
       mon.level = Math.min(100, mon.level + 1);
@@ -86,6 +88,31 @@ export function play(input, dex) {
     caught.add(e.species);
     const mon = { uid: nextUid++, species: e.species, level: START_LEVEL, caughtOn: e.day };
     (party.length < PARTY_SIZE ? party : box).push(mon);
+  };
+
+  // Doce Raro: +1 nivel para quem esta abaixo do mais alto do time, ate
+  // empatar com ele. Serve para trazer capturados (que entram no 1) para perto
+  // do principal; no mais alto nao vale. Sem doce, o evento e ignorado (pode
+  // acontecer se um dia for desmarcado depois do uso).
+  const useCandy = (e) => {
+    const mon = [...party, ...box].find((m) => m.uid === e.uid);
+    const top = Math.max(...party.map((m) => m.level));
+    if (candies <= 0 || !mon || mon.level >= top) return;
+    candies--;
+    mon.level++;
+    evolve(mon);
+  };
+
+  // O jogador escolhe quem fica no time (ate 6) e em que ordem; o primeiro e
+  // o principal. Quem sobra vai para a caixa, na ordem em que estava.
+  const arrange = (e) => {
+    const owned = [...party, ...box];
+    const chosen = [...new Set(e.uids)].map((uid) => owned.find((m) => m.uid === uid))
+      .filter(Boolean).slice(0, PARTY_SIZE);
+    if (!chosen.length) return;
+    const rest = owned.filter((m) => !chosen.includes(m));
+    party.splice(0, party.length, ...chosen);
+    box.splice(0, box.length, ...rest);
   };
 
   // Liga em sequencia: ginasios, Elite Four e campeao de cada regiao, na
@@ -134,9 +161,12 @@ export function play(input, dex) {
       if (e.type === 'start') begin(e);
       if (e.type === 'catch') throwBall(e);
       if (e.type === 'battle') fight(e);
+      if (e.type === 'party') arrange(e);
     }
     if (party.length) seen.add(wildOf(day).id);
     levelUp(day);
+    // Doce depois da subida do dia: o doce de hoje ja pode ser usado hoje.
+    for (const e of input.events) if (e.type === 'candy' && e.day === day) useCandy(e);
     if (day < input.today) turnover(day);
   }
 
@@ -157,7 +187,7 @@ export function play(input, dex) {
 
   const sorted = (set) => [...set].sort((a, b) => a - b);
   const result = {
-    started: true, party: plain(party), box: plain(box), hall, balls, challenge, lastDay,
+    started: true, party: plain(party), box: plain(box), hall, balls, candies, challenge, lastDay,
     caught: sorted(caught), seen: sorted(new Set([...seen, ...caught])),
     wild: null, needsStarter: null,
   };

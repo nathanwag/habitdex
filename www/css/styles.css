@@ -750,3 +750,19 @@ button.cell { cursor: pointer; }
 .dots i.is-out { background: var(--border); }
 
 .toast { bottom: calc(var(--safe-bottom) + 84px); }
+
+.mon__actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip-btn {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.chip-btn:active { transform: translateY(1px); }
+.chip-btn[disabled] { opacity: .45; pointer-events: none; }
