@@ -219,5 +219,7 @@ Caminhos são sempre relativos.
 
 - **Ícones do jogo** (`ball`, `emptyBall`, `candy` em `pokemon.js`) têm
   `stroke="none"` nas partes preenchidas: o CSS global põe stroke em todo svg.
+- **Ícone do app:** `www/icons/icon.svg` (anel da meta com Poké Bola) é a
+  fonte; os PNGs 180/192/512 saem dele (sharp). Trocar o SVG = regerar os PNGs.
 - **A barra de baixo** (`#tabs`) tem a Poké Bola no centro (Hoje) e aparece só
   nas telas principais, Ajustes inclusive.
