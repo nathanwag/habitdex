@@ -6,7 +6,8 @@
 import { dayProgress, todayList } from './habits.js';
 import { addDays } from './reminder.js';
 
-const START_LEVEL = 5;
+// Todo pokemon novo, inicial ou capturado, entra no nivel 1.
+const START_LEVEL = 1;
 const START_BALLS = 5;
 const PARTY_SIZE = 6;
 
@@ -35,7 +36,7 @@ export function play(input, dex) {
   const seen = new Set();
   const plain = (list) => list.map(({ caughtOn: _, ...m }) => m);
 
-  // Cada jornada (uma por regiao) comeca com um inicial no nivel 5. Um
+  // Cada jornada (uma por regiao) comeca com um inicial. Um
   // `start` so vale com o time vazio: no comeco e depois de cada campeao.
   const begin = (e) => {
     if (party.length) return;
@@ -83,7 +84,7 @@ export function play(input, dex) {
     balls--;
     if (!e.caught) return;
     caught.add(e.species);
-    const mon = { uid: nextUid++, species: e.species, level: e.level, caughtOn: e.day };
+    const mon = { uid: nextUid++, species: e.species, level: START_LEVEL, caughtOn: e.day };
     (party.length < PARTY_SIZE ? party : box).push(mon);
   };
 

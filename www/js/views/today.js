@@ -4,7 +4,7 @@ import * as db from '../db.js';
 import * as push from '../push.js';
 import { dayProgress, streak, todayList } from '../habits.js';
 import {
-  game, sprite, toNextLevel, startersOf, STARTERS,
+  game, sprite, toNextLevel, startersOf,
 } from '../pokemon.js';
 import { addDays, SNOOZE_MIN } from '../reminder.js';
 import {
@@ -133,15 +133,15 @@ const pct = (x) => `${Math.round(x * 100)}%`;
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
 
 function starterPicker(dex, state) {
-  // A primeira jornada aceita qualquer um dos 27; as seguintes, os 3 da regiao.
+  // Cada jornada comeca com um dos 3 iniciais da geracao da regiao.
   const next = state.needsStarter;
   const region = next && dex.regions.find((r) => r.id === next.region);
-  const options = next ? startersOf(next.gen) : STARTERS;
+  const options = startersOf(next ? next.gen : 1);
   return html`
     <section class="sec">
       ${raw(next ? html`<p class="banner banner--good">Liga vencida! Seu time foi para o Hall da Fama. A jornada continua em ${region.name}.</p>` : '')}
       <h2 class="section-title">${next ? `Inicial de ${region.name}` : 'Escolha seu inicial'}</h2>
-      <p class="hint">Ele começa no nível 5. Cada dia na meta o time sobe 1 nível; dia abaixo da meta, perde 1.</p>
+      <p class="hint">Ele começa no nível 1, como todo pokémon que você capturar. Cada dia na meta o time sobe 1 nível; dia abaixo da meta, perde 1.</p>
       <div class="starters">
         ${raw(options.map((id) => html`
           <button class="starter" type="button" data-starter="${id}">
@@ -160,7 +160,7 @@ function arena(dex, state, attack, progress) {
   return html`
     <section class="arena${attack ? ' is-attack' : ''}${wild.caught ? ' is-caught' : ''}" aria-label="Selvagem de hoje">
       <div class="hud hud--foe">
-        <div class="hud__row"><strong>${foe.name}</strong><span class="data">Nv ${wild.level}</span></div>
+        <div class="hud__row"><strong>${foe.name}</strong></div>
         <div class="hp"><div class="hp__fill${wild.hp < 0.25 ? ' is-low' : ''}" style="width: ${wild.hp * 100}%"></div></div>
         <span class="hud__sub">${wild.caught ? 'Capturado hoje' : 'Selvagem'}</span>
       </div>
@@ -182,7 +182,7 @@ function capturePanel(dex, state, progress) {
   const { wild, balls } = state;
   const goal = db.settings().goal;
   const name = dex.byId.get(wild.species).name;
-  if (wild.caught) return html`<p class="status">Você capturou <strong>${name}</strong> hoje.</p>`;
+  if (wild.caught) return html`<p class="status">Você capturou <strong>${name}</strong> hoje. Ele entrou no nível 1.</p>`;
   if (wild.canThrow) {
     return html`
       <button class="btn btn--primary btn--block" type="button" data-throw>
@@ -227,7 +227,7 @@ async function throwBall(view, dex, state, today) {
   view.querySelector('.arena').classList.add('is-throwing', caught ? 'will-catch' : 'will-escape');
   await sleep(2200);
   const name = dex.byId.get(wild.species).name;
-  toast(caught ? `Pegou! ${name} entrou no time.` : `${name} escapou da Pokébola!`, 3200);
+  toast(caught ? `Pegou! ${name} entrou no nível 1.` : `${name} escapou da Pokébola!`, 3200);
   refresh();
 }
 

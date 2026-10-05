@@ -73,10 +73,12 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   (`goal`, 0 a 1) sobe o time (até 6) 1 nível na hora; na virada ainda dá 1
   Pokébola, e dia abaixo da meta tira 1 nível do time (mínimo 1, sem
   desevoluir). A caixa fica congelada. Quem foi pego no dia não sobe nele.
-  Evolução só por nível puro. Inicial no nível 5 e 5 Pokébolas.
+  Evolução só por nível puro. Todo pokémon novo (inicial ou capturado) entra
+  no nível 1; começa com 5 Pokébolas.
 - **Uma jornada por região:** vencer o campeão manda time e caixa para o
   Hall da Fama (`hall`) e esvazia o time; `needsStarter` pede um novo
-  `start` (a tela oferece os 3 iniciais da geração). Assim os níveis
+  `start`. Cada jornada, inclusive a primeira, oferece só os 3 iniciais da
+  geração da região. Assim os níveis
   originais de cada liga continuam valendo.
 - **O selvagem do dia sai de um sorteio pela data** (`seeded`): o mesmo em
   qualquer recálculo. Forma básica da geração da região (por ora só Gen 1),
@@ -174,7 +176,7 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 - `#/feito?habito=&lembrete=`: o toque na notificação (marca e cai no Hoje).
 - O **Hoje** também tem a arena (selvagem do dia contra o primeiro do time;
   marcar hábito anima o golpe), a Pokébola quando bate a meta, o resumo de
-  ontem e, antes do inicial, a escolha entre os 27.
+  ontem e, antes do inicial, a escolha entre os 3 da região.
 - `#/time` (`views/team.js`), `#/pokedex` (`views/pokedex.js`, sprite só de
   quem foi visto) e `#/ginasios` (`views/gyms.js`): as abas do jogo, na barra
   de baixo (`#tabs`, só nas telas principais).
