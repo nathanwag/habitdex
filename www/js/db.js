@@ -11,7 +11,7 @@ import { dayOf as dayIn } from './reminder.js';
 // a string abriria um banco novo e vazio. E neutro de proposito, pra marca
 // poder mudar sem perder dados.
 const DB_NAME = 'habitos';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const DEFAULT_SETTINGS = {
   tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -23,6 +23,8 @@ export const DEFAULT_SETTINGS = {
   // contar o mesmo toque duas vezes, e o adiamento ({ habitId, at }).
   lastReminder: '',
   snoozed: null,
+  // Meta do dia do jogo (0 a 1): abaixo dela, o time perde um nivel na virada.
+  goal: 0.8,
 };
 
 let dbPromise = null;
@@ -47,6 +49,11 @@ function open() {
         // Um check por habito e dia: a chave composta impede duplicata.
         const checks = db.createObjectStore('checks', { keyPath: ['habitId', 'day'] });
         checks.createIndex('by_day', 'day');
+      }
+      if (event.oldVersion < 2) {
+        // Escolhas do jogo (inicial, capturas, batalhas), com o resultado ja
+        // sorteado: o game.js recalcula o resto a partir delas e dos checks.
+        db.createObjectStore('events', { keyPath: 'id', autoIncrement: true });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -142,4 +149,19 @@ export async function allChecks() {
 export async function checksOf(habitId) {
   const range = IDBKeyRange.bound([habitId, ''], [habitId, '￿']);
   return tx('checks', 'readonly', (t) => req(t.objectStore('checks').getAll(range)));
+}
+
+/** Escolhas do jogo, na ordem em que aconteceram. */
+export async function events() {
+  const rows = await tx('events', 'readonly', (t) => req(t.objectStore('events').getAll()));
+  return (await rows).sort((a, b) => a.id - b.id);
+}
+
+export async function addEvent(event) {
+  await tx('events', 'readwrite', (t) => { t.objectStore('events').add({ ...event, at: new Date().toISOString() }); });
+}
+
+/** Recomeca o jogo do zero; habitos e checks ficam. */
+export async function clearEvents() {
+  await tx('events', 'readwrite', (t) => { t.objectStore('events').clear(); });
 }
