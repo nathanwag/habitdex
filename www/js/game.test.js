@@ -222,3 +222,22 @@ test('vencer o campeao leva a proxima regiao, e os selvagens passam a ser da ger
   assert.deepEqual([state.challenge.region, state.challenge.name], ['johto', 'Falkner']);
   assert.equal(state.wild.species, 161);
 });
+
+test('a Pokedex marca como capturado o que voce teve (evolucoes inclusive) e como visto tambem os selvagens de cada dia', () => {
+  const onlyPidgeyWild = { ...dex, sprites: [16] };
+  const state = play(started('2026-10-03', {
+    ...many(27, '2026-10-03'),
+    events: [
+      { type: 'start', day: '2026-10-03', species: 4 },
+      { type: 'catch', day: '2026-10-04', species: 16, level: 3, caught: false },
+    ],
+  }), onlyPidgeyWild);
+  assert.deepEqual(state.caught, [4, 5]);
+  assert.deepEqual(state.seen, [4, 5, 16]);
+});
+
+test('o resumo do ultimo dia fechado diz se bateu a meta', () => {
+  const state = play(started('2026-10-03', { checks: [check(1, '2026-10-03')] }), dex);
+  assert.deepEqual(state.lastDay, { day: '2026-10-04', progress: 0, met: false });
+  assert.equal(play(started(), dex).lastDay, null);
+});

@@ -39,6 +39,9 @@ export function play(input, dex) {
   party[0].xp = curve(party[0])[START_LEVEL - 1];
   const box = [];
   let balls = START_BALLS;
+  let lastDay = null;
+  const caught = new Set([start.species]);
+  const seen = new Set();
 
   const avgLevel = () => Math.round(party.reduce((s, m) => s + m.level, 0) / party.length);
   const gain = () => {
@@ -57,6 +60,7 @@ export function play(input, dex) {
       && e.level && Object.keys(e).length === 3 && mon.level >= e.level);
     if (!next) return;
     mon.species = next.to;
+    caught.add(mon.species);
     evolve(mon);
   };
 
@@ -66,7 +70,8 @@ export function play(input, dex) {
   const turnover = (day) => {
     const progress = dayProgress(todayList(input.habits, input.checks, day));
     if (progress === null) return;
-    if (progress >= input.goal) { balls++; return; }
+    lastDay = { day, progress, met: progress >= input.goal };
+    if (lastDay.met) { balls++; return; }
     for (const mon of [...party, ...box]) {
       mon.level = Math.max(1, mon.level - 1);
       mon.xp = curve(mon)[mon.level - 1];
@@ -78,6 +83,7 @@ export function play(input, dex) {
   const throwBall = (e) => {
     balls--;
     if (!e.caught) return;
+    caught.add(e.species);
     const mon = { uid: party.length + box.length + 1, species: e.species, level: e.level, xp: 0 };
     mon.xp = curve(mon)[mon.level - 1];
     (party.length < PARTY_SIZE ? party : box).push(mon);
@@ -102,6 +108,20 @@ export function play(input, dex) {
     if (step === stepsOf(regions[region]).length) { region++; step = 0; }
   };
 
+  // Selvagens: formas basicas da geracao da regiao atual (as regioes estao
+  // na ordem das geracoes), sem lendarios e miticos, e so quem tem sprite.
+  const sprites = new Set(dex.sprites);
+  const pools = new Map();
+  const wildOf = (day) => {
+    const gen = regions.length ? Math.min(region, regions.length - 1) + 1 : 1;
+    if (!pools.has(gen)) {
+      pools.set(gen, dex.pokemon.filter((p) => p.gen === gen && !p.legendary && !p.mythical
+        && p.evolvesFrom === null && sprites.has(p.id)));
+    }
+    const pool = pools.get(gen);
+    return pool[Math.floor(seeded(day) * pool.length)];
+  };
+
   for (let day = start.day; day <= input.today; day = addDays(day, 1)) {
     for (const c of input.checks) if (c.day === day) gain();
     for (const e of input.events) {
@@ -109,6 +129,7 @@ export function play(input, dex) {
       if (e.type === 'catch') throwBall(e);
       if (e.type === 'battle') fight(e);
     }
+    seen.add(wildOf(day).id);
     if (day < input.today) turnover(day);
   }
 
@@ -126,13 +147,7 @@ export function play(input, dex) {
       canBattle: lostOn !== input.today,
     };
   }
-  // Selvagens: formas basicas da geracao da regiao atual (as regioes estao
-  // na ordem das geracoes), sem lendarios e miticos, e so quem tem sprite.
-  const gen = regions.length ? Math.min(region, regions.length - 1) + 1 : 1;
-  const sprites = new Set(dex.sprites);
-  const pool = dex.pokemon.filter((p) => p.gen === gen && !p.legendary && !p.mythical
-    && p.evolvesFrom === null && sprites.has(p.id));
-  const species = pool[Math.floor(seeded(input.today) * pool.length)];
+  const species = wildOf(input.today);
   // Cada habito feito hoje tira vida do selvagem. Captura pela formula da
   // Gen 3/4 com Pokebola comum e sem status: (3M - 2H) * taxa / 3M, sobre 255,
   // com a vida em centesimos e no minimo 1.
@@ -149,5 +164,9 @@ export function play(input, dex) {
   };
   wild.canThrow = !wild.caught && progress !== null && progress >= input.goal && balls > 0;
 
-  return { started: true, party, box, balls, wild, challenge };
+  const sorted = (set) => [...set].sort((a, b) => a - b);
+  return {
+    started: true, party, box, balls, wild, challenge, lastDay,
+    caught: sorted(caught), seen: sorted(new Set([...seen, ...caught])),
+  };
 }
