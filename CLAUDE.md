@@ -68,6 +68,16 @@ versionados no repo (sprites ~140 MB); não edite à mão.
   sem lendário/mítico e com sprite. A chance é a fórmula da Gen 3/4.
 - **Arremesso é sorteado pela tela e gravado com o resultado** (`catch` com
   `caught`): o motor nunca sorteia captura de novo ao recalcular.
+- **Liga em sequência** (`play` → `challenge`): ginásios, Elite Four e campeão,
+  região por região. A tela roda a batalha e grava `battle` com `won`; perder
+  trava aquele chefe até o dia seguinte. Vencer o campeão muda a região e a
+  geração dos selvagens (índice da região + 1). O time com variante de inicial
+  usa o tipo do primeiro do seu time (fogo se não for fogo, água nem grama).
+- **`www/js/battle.js`** (`createBattle`, `turn(estado, rng)`): batalha
+  automática, as duas IAs escolhem o golpe de maior dano esperado. Stats com IV
+  31/EV 0/neutra, dano da Gen 5, golpes do seu pokémon = 4 últimos aprendidos.
+  Golpe sem poder (status, dano fixo) não faz nada; sem golpe de dano, Struggle.
+  `turn` não muda o estado recebido e devolve os `events` para a animação.
 - **Sprites ficam no cache `SPRITES` do `sw.js`**, fora do `VERSION`, para não
   serem baixados de novo a cada deploy. Não entram no `ASSETS`.
 
@@ -155,7 +165,8 @@ Só os módulos puros e o Worker são testados. Os seams são:
   `dueReminders`, `nextReminder` e `configError`
 - `habits.js`: `todayList`, `dayProgress`, `streak`, `habitHistory` e
   `syncState`
-- `game.js`: `play` (com uma Pokédex falsa pequena)
+- `game.js`: `play` (com uma Pokédex falsa pequena) e `battle.js`:
+  `createBattle`, `turn` (sorteio por parâmetro)
 - `worker/src/api.js` (`handleApi`) e `cron.js` (`handleCron`), com KV e
   `send` falsos
 - `scripts/pokedex/build.js` (`parseCsv`, `buildPokedex`) e

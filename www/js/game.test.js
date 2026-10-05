@@ -6,13 +6,13 @@ import { play } from './game.js';
 // medium-fast e a oficial: nivel n custa n^3 de XP acumulado (nivel 1 = 0).
 const cube = Array.from({ length: 100 }, (_, i) => (i === 0 ? 0 : (i + 1) ** 3));
 const species = (id, name, extra = {}) => ({
-  id, name, gen: 1, capture: 45, growth: 'medium-fast', legendary: false, mythical: false,
+  id, name, gen: 1, types: ['normal'], capture: 45, growth: 'medium-fast', legendary: false, mythical: false,
   evolvesFrom: null, evolutions: [], ...extra,
 });
 const dex = {
   growth: { 'medium-fast': cube },
   pokemon: [
-    species(4, 'Charmander', { evolutions: [{ to: 5, trigger: 'level-up', level: 16 }] }),
+    species(4, 'Charmander', { types: ['fire'], evolutions: [{ to: 5, trigger: 'level-up', level: 16 }] }),
     species(5, 'Charmeleon', { evolvesFrom: 4 }),
     species(16, 'Pidgey', { capture: 255 }),
   ],
@@ -156,4 +156,69 @@ test('o selvagem de hoje, depois de capturado, nao aceita mais Pokebola', () => 
   const events = [...input.events, { type: 'catch', day: '2026-10-05', species: wild.species, level: wild.level, caught: true }];
   const after = play({ ...input, events }, dex).wild;
   assert.deepEqual([after.caught, after.canThrow], [true, false]);
+});
+
+// Ligas de mentira no formato de www/data/gyms.json.
+const leader = (name, type, team) => ({ name, type, team });
+const leagueDex = {
+  ...dex,
+  pokemon: [...dex.pokemon, species(161, 'Sentret', { gen: 2 }), species(1, 'Bulbasaur', { types: ['grass', 'poison'] }),
+    species(7, 'Squirtle', { types: ['water'] })],
+  sprites: [...dex.sprites, 161, 1, 7],
+  regions: [
+    {
+      id: 'kanto', name: 'Kanto',
+      gyms: [leader('Brock', 'rock', [{ species: 74, level: 12, moves: [33] }]),
+        leader('Misty', 'water', [{ species: 121, level: 21, moves: [55] }])],
+      elite: [leader('Lorelei', 'ice', [{ species: 87, level: 54, moves: [62] }])],
+      champion: leader('Blue', null, [
+        { species: 18, level: 61, moves: [17] },
+        { species: 3, level: 65, moves: [75], starter: 'water' },
+        { species: 6, level: 65, moves: [52], starter: 'grass' },
+        { species: 9, level: 65, moves: [55], starter: 'fire' },
+      ]),
+    },
+    {
+      id: 'johto', name: 'Johto',
+      gyms: [leader('Falkner', 'flying', [{ species: 17, level: 9, moves: [16] }])],
+      elite: [], champion: leader('Lance', 'dragon', [{ species: 149, level: 50, moves: [63] }]),
+    },
+  ],
+};
+const battle = (day, won) => ({ type: 'battle', day, won });
+
+test('o desafio comeca no primeiro ginasio de Kanto; perder bloqueia ate o dia seguinte, vencer passa ao proximo', () => {
+  const first = play(started(), leagueDex).challenge;
+  assert.deepEqual([first.region, first.kind, first.name, first.canBattle], ['kanto', 'gym', 'Brock', true]);
+  assert.deepEqual(first.team, [{ species: 74, level: 12, moves: [33] }]);
+
+  const lost = play(started('2026-10-05', { events: [...started().events, battle('2026-10-05', false)] }), leagueDex);
+  assert.deepEqual([lost.challenge.name, lost.challenge.canBattle], ['Brock', false]);
+  const nextDay = play(started('2026-10-04', {
+    events: [{ type: 'start', day: '2026-10-04', species: 4 }, battle('2026-10-04', false)],
+  }), leagueDex);
+  assert.deepEqual([nextDay.challenge.name, nextDay.challenge.canBattle], ['Brock', true]);
+
+  const won = play(started('2026-10-05', { events: [...started().events, battle('2026-10-05', true)] }), leagueDex);
+  assert.deepEqual([won.challenge.name, won.challenge.canBattle], ['Misty', true]);
+});
+
+const wins = (n, day = '2026-10-05') => Array.from({ length: n }, () => battle(day, true));
+
+test('o time que depende do inicial segue o tipo do seu primeiro pokemon (fogo se nao for fogo, agua ou grama)', () => {
+  const blueWith = (species) => play({
+    ...base, events: [{ type: 'start', day: '2026-10-05', species }, ...wins(3)],
+  }, leagueDex).challenge;
+  const charmander = blueWith(4);
+  assert.deepEqual([charmander.kind, charmander.name], ['champion', 'Blue']);
+  assert.deepEqual(charmander.team, [{ species: 18, level: 61, moves: [17] }, { species: 9, level: 65, moves: [55] }]);
+  assert.deepEqual(blueWith(1).team.map((p) => p.species), [18, 6]);
+  assert.deepEqual(blueWith(7).team.map((p) => p.species), [18, 3]);
+  assert.deepEqual(blueWith(16).team.map((p) => p.species), [18, 9]);
+});
+
+test('vencer o campeao leva a proxima regiao, e os selvagens passam a ser da geracao dela', () => {
+  const state = play(started('2026-10-05', { events: [...started().events, ...wins(4)] }), leagueDex);
+  assert.deepEqual([state.challenge.region, state.challenge.name], ['johto', 'Falkner']);
+  assert.equal(state.wild.species, 161);
 });

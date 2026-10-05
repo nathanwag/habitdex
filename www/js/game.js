@@ -83,15 +83,54 @@ export function play(input, dex) {
     (party.length < PARTY_SIZE ? party : box).push(mon);
   };
 
+  // Liga em sequencia: ginasios, Elite Four e campeao de cada regiao, na
+  // ordem dos jogos. A tela roda a batalha e grava so o resultado. Perder
+  // trava aquele chefe ate o dia seguinte.
+  const regions = dex.regions ?? [];
+  const stepsOf = (r) => [
+    ...r.gyms.map((boss, index) => ({ kind: 'gym', index, boss })),
+    ...r.elite.map((boss, index) => ({ kind: 'elite', index, boss })),
+    { kind: 'champion', index: 0, boss: r.champion },
+  ];
+  let region = 0;
+  let step = 0;
+  let lostOn = null;
+  const fight = (e) => {
+    if (!e.won) { lostOn = e.day; return; }
+    lostOn = null;
+    step++;
+    if (step === stepsOf(regions[region]).length) { region++; step = 0; }
+  };
+
   for (let day = start.day; day <= input.today; day = addDays(day, 1)) {
     for (const c of input.checks) if (c.day === day) gain();
-    for (const e of input.events) if (e.type === 'catch' && e.day === day) throwBall(e);
+    for (const e of input.events) {
+      if (e.day !== day) continue;
+      if (e.type === 'catch') throwBall(e);
+      if (e.type === 'battle') fight(e);
+    }
     if (day < input.today) turnover(day);
   }
-  // Selvagens: formas basicas da geracao da regiao atual (por enquanto Kanto),
-  // sem lendarios e miticos, e so quem tem sprite.
+
+  let challenge = null;
+  if (region < regions.length) {
+    const { kind, index, boss } = stepsOf(regions[region])[step];
+    // O rival monta o time contra o inicial do jogador: aqui, o tipo do
+    // primeiro do time (fogo, se nao for fogo, agua nem grama).
+    const types = byId.get(party[0].species).types;
+    const starter = ['fire', 'water', 'grass'].find((t) => types.includes(t)) ?? 'fire';
+    challenge = {
+      region: regions[region].id, kind, index, name: boss.name, type: boss.type,
+      team: boss.team.filter((p) => !p.starter || p.starter === starter)
+        .map(({ starter: _, ...p }) => p),
+      canBattle: lostOn !== input.today,
+    };
+  }
+  // Selvagens: formas basicas da geracao da regiao atual (as regioes estao
+  // na ordem das geracoes), sem lendarios e miticos, e so quem tem sprite.
+  const gen = regions.length ? Math.min(region, regions.length - 1) + 1 : 1;
   const sprites = new Set(dex.sprites);
-  const pool = dex.pokemon.filter((p) => p.gen === 1 && !p.legendary && !p.mythical
+  const pool = dex.pokemon.filter((p) => p.gen === gen && !p.legendary && !p.mythical
     && p.evolvesFrom === null && sprites.has(p.id));
   const species = pool[Math.floor(seeded(input.today) * pool.length)];
   // Cada habito feito hoje tira vida do selvagem. Captura pela formula da
@@ -110,5 +149,5 @@ export function play(input, dex) {
   };
   wild.canThrow = !wild.caught && progress !== null && progress >= input.goal && balls > 0;
 
-  return { started: true, party, box, balls, wild };
+  return { started: true, party, box, balls, wild, challenge };
 }
