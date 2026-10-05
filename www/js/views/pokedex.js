@@ -1,7 +1,7 @@
 /* Pokedex — os 1025, por geracao. Sprite so de quem ja foi visto: carregar
  * os 1025 GIFs de uma vez pesaria ~140 MB. */
 
-import { game, sprite } from '../pokemon.js';
+import { game, sprite, ball } from '../pokemon.js';
 import { html, raw, setTop } from '../ui.js';
 
 const num = (id) => `#${String(id).padStart(4, '0')}`;
@@ -27,7 +27,11 @@ export async function render(view) {
 
   const gens = [...new Set(dex.pokemon.map((p) => p.gen))];
   view.innerHTML = html`
-    <p class="status"><strong>${caught.size}</strong> capturados · ${seen.size} vistos · ${dex.pokemon.length} no total</p>
+    <div class="dex-stats">
+      <span class="pill">${raw(ball(18))}${caught.size} capturados</span>
+      <span class="pill">${seen.size} vistos</span>
+      <span class="pill">${dex.pokemon.length} no total</span>
+    </div>
     ${raw(gens.map((g) => html`
       <section class="sec">
         <h2 class="section-title">Geração ${g}</h2>

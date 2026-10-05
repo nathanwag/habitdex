@@ -56,7 +56,7 @@ async function masterCard(subscribed) {
 }
 
 export async function render(view) {
-  setTop({ title: 'Ajustes', back: '#/' });
+  setTop({ title: 'Ajustes' });
 
   const s = db.settings();
   const subscribed = Boolean(await push.currentSubscription().catch(() => null));

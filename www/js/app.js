@@ -30,7 +30,7 @@ const ROUTES = {
 };
 
 // Abas do jogo: aparecem so nas telas principais.
-const TABS = ['/', '/time', '/pokedex', '/ginasios'];
+const TABS = ['/', '/time', '/pokedex', '/ginasios', '/ajustes'];
 
 function markTab(path) {
   const tabs = $('#tabs');
@@ -50,6 +50,7 @@ async function route() {
   view.oninput = null;
   view.onchange = null;
   view.onsubmit = null;
+  delete view.dataset.battle;
   markTab(ROUTES[path] ? path : '/');
   try {
     await (ROUTES[path] || ROUTES['/'])(view, new URLSearchParams(query));

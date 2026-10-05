@@ -2,7 +2,9 @@
 
 import * as db from '../db.js';
 import { createBattle, turn } from '../battle.js';
-import { game, sprite, TYPE_NAMES } from '../pokemon.js';
+import {
+  game, sprite, badgesOf, TYPE_NAMES,
+} from '../pokemon.js';
 import {
   html, raw, setTop, buzz,
 } from '../ui.js';
@@ -20,7 +22,7 @@ const topLevel = (team) => Math.max(...team.map((p) => p.level));
 const typeTag = (t) => (t ? html`<span class="type type--${t}">${TYPE_NAMES[t] ?? t}</span>` : '');
 
 export async function render(view) {
-  setTop({ title: 'Ginásios' });
+  setTop({ title: 'Liga' });
   const { dex, state } = await game();
   if (!state.started || state.needsStarter) {
     view.innerHTML = html`<a class="btn btn--primary btn--block" href="#/">Escolha seu inicial no Hoje</a>`;
@@ -28,7 +30,7 @@ export async function render(view) {
   }
   const ch = state.challenge;
   if (!ch) {
-    view.innerHTML = html`<section class="hero"><p class="hero__left">Você venceu todas as ligas!</p></section>`;
+    view.innerHTML = html`<section class="card card__pad"><h2>Você venceu todas as ligas!</h2></section>`;
     return;
   }
   const regionIdx = dex.regions.findIndex((r) => r.id === ch.region);
@@ -36,21 +38,30 @@ export async function render(view) {
   const steps = stepsOf(region);
   const current = steps.findIndex((s) => s.kind === ch.kind && s.index === ch.index);
   const myTop = Math.max(...state.party.map((m) => m.level));
+  const { won, total } = badgesOf(dex, ch);
+  const name = (id) => dex.byId.get(id).name;
 
   view.innerHTML = html`
-    ${raw(regionIdx ? html`<p class="status">Regiões vencidas: ${dex.regions.slice(0, regionIdx).map((r) => r.name).join(', ')}</p>` : '')}
-    <section class="card card__pad challenge stack">
+    <section class="region-card">
+      <span class="grow">
+        <span class="region-card__name">${region.name}</span><br>
+        <span class="region-card__sub">${region.game} · ${won} de ${total} insígnias${regionIdx ? ` · ${regionIdx} liga${regionIdx === 1 ? '' : 's'} vencida${regionIdx === 1 ? '' : 's'}` : ''}</span>
+      </span>
+      <span class="row" style="gap: 4px">${raw(Array.from({ length: total }, (_, i) => `<span class="badge-hex${i < won ? ' is-won' : ''}"></span>`).join(''))}</span>
+    </section>
+
+    <section class="card challenge stack">
       <div class="row">
         <div class="grow">
-          <span class="hint">${region.name} · ${KIND[ch.kind]}${ch.kind === 'gym' ? ` ${ch.index + 1}` : ''}</span>
+          <span class="challenge__kicker">PRÓXIMO · ${KIND[ch.kind].toUpperCase()}${ch.kind === 'gym' ? ` ${ch.index + 1}` : ''}</span>
           <h2>${ch.name}</h2>
         </div>
         ${raw(typeTag(ch.type))}
       </div>
       <ul class="lineup">
         ${raw(ch.team.map((p) => html`
-          <li><img class="sprite" src="${sprite(p.species)}" alt="${dex.byId.get(p.species).name}" loading="lazy">
-            <span class="data">Nv ${p.level}</span></li>`).join(''))}
+          <li><span class="lineup__pic"><img class="sprite" src="${sprite(p.species)}" alt="${name(p.species)}" loading="lazy"></span>
+            Nv ${p.level}</li>`).join(''))}
       </ul>
       <p class="hint">O mais forte dele é nível ${topLevel(ch.team)}; o seu, ${myTop}. A luta é automática.</p>
       ${raw(ch.canBattle
@@ -59,18 +70,18 @@ export async function render(view) {
     </section>
 
     <section class="sec">
-      <h2 class="section-title">${region.name} · ${region.game}</h2>
-      <ol class="card ladder">
+      <h2 class="section-title">Caminho até o campeão</h2>
+      <ol class="ladder">
         ${raw(steps.map((s, i) => {
           const ace = s.boss.team.at(-1);
           const status = i < current ? 'is-done' : i === current ? 'is-current' : 'is-locked';
           return html`
             <li class="ladder__row ${status}">
-              <img class="sprite sprite--sm" src="${sprite(ace.species)}" alt="" loading="lazy">
+              <span class="ladder__pic"><img class="sprite" src="${sprite(ace.species)}" alt="" loading="lazy"></span>
               <span class="grow"><strong>${s.boss.name}</strong>
-                <span class="hint">${KIND[s.kind]} · até nível ${topLevel(s.boss.team)}</span></span>
+                <span>${KIND[s.kind]} · até nível ${topLevel(s.boss.team)}</span></span>
               ${raw(typeTag(s.boss.type))}
-              <span class="ladder__mark" aria-label="${i < current ? 'Vencido' : i === current ? 'Próximo' : 'Bloqueado'}">${i < current ? '✓' : i === current ? '›' : ''}</span>
+              <span class="ladder__mark" aria-label="${i < current ? 'Vencido' : i === current ? 'Próximo' : 'Bloqueado'}">${i < current ? '✓' : ''}</span>
             </li>`;
         }).join(''))}
       </ol>
@@ -122,14 +133,15 @@ export async function renderBattle(view) {
       ${raw(side(dex, me, false))}
     </section>
     <div class="row battle__teams">${raw(dots(start.sides[0].team, 0))}<span class="grow"></span>${raw(dots(start.sides[1].team, 1))}</div>
-    <p class="battle__log card card__pad" data-log aria-live="polite">${ch.name} quer batalhar!</p>
+    <p class="battle__log card" data-log aria-live="polite">${ch.name} quer batalhar!</p>
     <button class="btn btn--ghost btn--block" type="button" data-skip>Pular animação</button>
     <div data-result></div>
   `;
 
   let skip = false;
   view.onclick = (e) => { if (e.target.closest('[data-skip]')) skip = true; };
-  const alive = () => view.dataset.battle === token && view.isConnected;
+  // Saiu da tela no meio da luta: o #view ja e de outra rota, a animacao para.
+  const alive = () => view.dataset.battle === token && Boolean(view.querySelector('[data-log]'));
   const $ = (sel) => view.querySelector(sel);
   const nameOf = (f) => dex.byId.get(f.species).name;
   const log = (text) => { $('[data-log]').textContent = text; };

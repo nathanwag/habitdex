@@ -4,16 +4,14 @@ import * as db from '../db.js';
 import * as push from '../push.js';
 import { dayProgress, streak, todayList } from '../habits.js';
 import {
-  game, sprite, toNextLevel, startersOf,
+  game, sprite, toNextLevel, startersOf, ball, emptyBall, candy, badgesOf,
 } from '../pokemon.js';
 import { addDays, SNOOZE_MIN } from '../reminder.js';
 import {
   html, raw, setTop, toast, buzz, refresh, isIOS, isStandalone, openSheet, closeSheet, node, APP_NAME,
 } from '../ui.js';
 
-export const GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.6-1.5L14.2 2.6h-4l-.3 2.5a7.7 7.7 0 0 0-2.6 1.5l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.6 1.5l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.6-1.5l2.3 1 2-3.4z"/></svg>';
 const LIST = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01"/></svg>';
-export const CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 export const CHEVRON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
@@ -108,29 +106,30 @@ async function reminderLine() {
     : html`<p class="status">Sem mais lembretes hoje.</p>`;
 }
 
-function heroLine(list) {
-  const pending = list.filter((i) => i.mustDo).length;
-  if (pending === 0) return 'Tudo feito por hoje';
-  return `Falta${pending === 1 ? '' : 'm'} ${plural(pending, 'hábito', 'hábitos')} hoje`;
-}
+const pct = (x) => `${Math.round(x * 100)}%`;
+const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
+
+// Cada habito ganha um tom fixo (pela id), para a lista nao ficar monotona.
+const TINTS = [
+  ['#fde3ee', '#b02a63'], ['#fde4e1', '#b0342a'], ['#e3ecfc', '#2f5fb8'], ['#ece7f7', '#5c468c'],
+  ['#e3f4dc', '#2f6d27'], ['#fff1cc', '#8a5a00'], ['#dff3f5', '#0e6470'], ['#efeee2', '#66663f'],
+];
+const tint = (id) => TINTS[(id - 1) % TINTS.length];
 
 export function habitRow(item, sub) {
   const { habit, done } = item;
+  const [bg, ink] = tint(habit.id);
   return html`
-    <li class="habit${done ? ' is-done' : ''}">
-      <button class="habit__check" type="button" data-toggle="${habit.id}" aria-pressed="${String(done)}"
-        aria-label="${done ? 'Desmarcar' : 'Marcar'} ${habit.name}">${raw(CHECK)}</button>
-      <a class="habit__body" href="#/habito?id=${habit.id}">
-        <span class="habit__name">${habit.name}</span>
-        <span class="habit__sub">${sub}</span>
+    <li class="hab${done ? ' is-done' : ''}">
+      <span class="hab__tile" style="background: ${bg}; color: ${ink}" aria-hidden="true">${habit.name.trim()[0] ?? '?'}</span>
+      <a class="hab__body" href="#/habito?id=${habit.id}">
+        <span class="hab__name">${habit.name}</span>
+        <span class="hab__sub">${sub}</span>
       </a>
-      <a class="habit__chev" href="#/habito?id=${habit.id}" aria-hidden="true" tabindex="-1">${raw(CHEVRON)}</a>
+      <button class="hab__check" type="button" data-toggle="${habit.id}" aria-pressed="${String(done)}"
+        aria-label="${done ? 'Desmarcar' : 'Marcar'} ${habit.name}">${raw(done ? ball(38) : emptyBall(38))}</button>
     </li>`;
 }
-
-const BALL = '<svg class="ball" viewBox="0 0 40 40" aria-hidden="true"><path d="M3 20a17 17 0 0 1 34 0z" fill="#e5603f"/><path d="M3 20a17 17 0 0 0 34 0z" fill="#fff"/><circle cx="20" cy="20" r="17" fill="none" stroke="#1b2230" stroke-width="3"/><path d="M3 20h34" stroke="#1b2230" stroke-width="3"/><circle cx="20" cy="20" r="5.5" fill="#fff" stroke="#1b2230" stroke-width="3"/></svg>';
-const pct = (x) => `${Math.round(x * 100)}%`;
-const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
 
 function starterPicker(dex, state) {
   // Cada jornada comeca com um dos 3 iniciais da geracao da regiao.
@@ -138,68 +137,103 @@ function starterPicker(dex, state) {
   const region = next && dex.regions.find((r) => r.id === next.region);
   const options = startersOf(next ? next.gen : 1);
   return html`
+    ${raw(next ? html`<p class="banner banner--good">Liga vencida! Seu time foi para o Hall da Fama. A jornada continua em ${region.name}.</p>` : '')}
     <section class="sec">
-      ${raw(next ? html`<p class="banner banner--good">Liga vencida! Seu time foi para o Hall da Fama. A jornada continua em ${region.name}.</p>` : '')}
       <h2 class="section-title">${next ? `Inicial de ${region.name}` : 'Escolha seu inicial'}</h2>
       <p class="hint">Ele começa no nível 1, como todo pokémon que você capturar. Cada dia na meta o time sobe 1 nível; dia abaixo da meta, perde 1.</p>
-      <div class="starters">
-        ${raw(options.map((id) => html`
-          <button class="starter" type="button" data-starter="${id}">
-            <img class="sprite" src="${sprite(id)}" alt="" loading="lazy">
-            <span>${dex.byId.get(id).name}</span>
-          </button>`).join(''))}
-      </div>
-    </section>`;
+    </section>
+    <div class="starters">
+      ${raw(options.map((id) => html`
+        <button class="starter" type="button" data-starter="${id}">
+          <span class="starter__pic"><img class="sprite" src="${sprite(id)}" alt=""></span>
+          ${dex.byId.get(id).name}
+        </button>`).join(''))}
+    </div>`;
 }
 
-function arena(dex, state, attack, progress) {
-  const { wild } = state;
-  const me = state.party[0];
-  const foe = dex.byId.get(wild.species);
-  const mine = dex.byId.get(me.species);
+function trainerBar(dex, state) {
+  const { region, won, total } = badgesOf(dex, state.challenge);
   return html`
-    <section class="arena${attack ? ' is-attack' : ''}${wild.caught ? ' is-caught' : ''}" aria-label="Selvagem de hoje">
-      <div class="hud hud--foe">
-        <div class="hud__row"><strong>${foe.name}</strong></div>
-        <div class="hp"><div class="hp__fill${wild.hp < 0.25 ? ' is-low' : ''}" style="width: ${wild.hp * 100}%"></div></div>
-        <span class="hud__sub">${wild.caught ? 'Capturado hoje' : 'Selvagem'}</span>
+    <div class="trainer">
+      <span class="trainer__where">
+        <strong>${region ? region.name : 'Liga vencida'}</strong>
+        ${raw(Array.from({ length: total }, (_, i) => `<span class="badge-hex${i < won ? ' is-won' : ''}"></span>`).join(''))}
+      </span>
+      <span class="pill" aria-label="${state.balls} Pokébolas">${raw(ball(18))}${state.balls}</span>
+      <span class="pill pill--candy" aria-label="${state.candies} Doces Raros">${raw(candy(20))}${state.candies}</span>
+    </div>`;
+}
+
+function goalCard(dex, state, list, progress, attack) {
+  const me = state.party[0];
+  const name = dex.byId.get(me.species).name;
+  const goal = db.settings().goal;
+  const done = list.filter((i) => i.done).length;
+  const counted = list.filter((i) => i.done || i.mustDo).length;
+  const met = progress !== null && progress >= goal;
+  const missing = Math.max(0, Math.ceil(goal * counted - 1e-9) - done);
+  const C = 2 * Math.PI * 66;
+  const filled = toNextLevel(progress, goal) * C;
+  let title;
+  let sub;
+  if (!list.length) {
+    title = 'Nada pra hoje';
+    sub = 'Sem hábitos agendados hoje.';
+  } else if (met) {
+    title = 'Meta batida!';
+    sub = html`${name} subiu para o <strong>Nv ${me.level}</strong> e você ganhou 1 doce.`;
+  } else {
+    title = `Falta${missing === 1 ? '' : 'm'} ${missing} hábito${missing === 1 ? '' : 's'}`;
+    sub = html`Batendo a meta, ${name} sobe pro <strong>Nv ${me.level + 1}</strong> e você ganha 1 doce.`;
+  }
+  return html`
+    <section class="card goal-card${attack ? ' is-attack' : ''}" aria-label="Meta de hoje">
+      <div class="ring${met ? ' is-met' : ''}">
+        <svg viewBox="0 0 150 150" aria-hidden="true">
+          <circle class="ring__track" cx="75" cy="75" r="66" fill="none" stroke-width="14"/>
+          <circle class="ring__fill" cx="75" cy="75" r="66" fill="none" stroke-width="14" stroke-linecap="round"
+            stroke-dasharray="${filled} ${C}" transform="rotate(-90 75 75)"/>
+        </svg>
+        <span class="ring__pic"><img class="sprite" src="${sprite(me.species)}" alt="${name}"></span>
+        <span class="ring__lv">Nv ${me.level}</span>
       </div>
-      <div class="arena__foe">
-        <img class="sprite" src="${sprite(wild.species)}" alt="${foe.name} selvagem">
-        ${raw(BALL)}
-      </div>
-      <div class="arena__me">
-        <img class="sprite sprite--back" src="${sprite(me.species, 'back')}" alt="Seu ${mine.name}">
-      </div>
-      <div class="hud hud--me">
-        <div class="hud__row"><strong>${mine.name}</strong><span class="data">Nv ${me.level}</span></div>
-        <div class="xp" title="Meta de hoje"><div class="xp__fill" style="width: ${toNextLevel(progress, db.settings().goal) * 100}%"></div></div>
+      <div class="goal-card__text">
+        <span class="goal-card__num">${done}<span>/${list.length}</span></span>
+        <span class="goal-card__title">${title}</span>
+        <span class="goal-card__sub">${raw(String(sub))}</span>
       </div>
     </section>`;
 }
 
-function capturePanel(dex, state, progress) {
+function wildCard(dex, state, progress, attack) {
   const { wild, balls } = state;
-  const goal = db.settings().goal;
   const name = dex.byId.get(wild.species).name;
-  if (wild.caught) return html`<p class="status">Você capturou <strong>${name}</strong> hoje. Ele entrou no nível 1.</p>`;
-  if (wild.canThrow) {
-    return html`
-      <button class="btn btn--primary btn--block" type="button" data-throw>
-        Jogar Pokébola · ${pct(wild.chance)} de chance
-      </button>
-      <p class="hint">Restam ${balls} Pokébola${balls === 1 ? '' : 's'}.</p>`;
-  }
-  if (balls === 0) return html`<p class="status">Sem Pokébolas: cada dia na meta dá uma.</p>`;
-  return html`<p class="status">Bata a meta de <strong>${pct(goal)}</strong> para jogar Pokébola em ${name}
-    (chance agora ${pct(wild.chance)}, ${balls} Pokébola${balls === 1 ? '' : 's'}). Hoje: ${pct(progress ?? 0)}.</p>`;
+  const goal = db.settings().goal;
+  let action;
+  if (wild.caught) action = html`<span class="wild__hint">Capturado! Entrou no nível 1.</span>`;
+  else if (wild.canThrow) action = html`<button class="btn btn--primary btn--block" type="button" data-throw>Jogar Poké Bola · ${pct(wild.chance)}</button>`;
+  else if (balls === 0) action = html`<span class="wild__hint">Sem Poké Bolas: cada dia na meta dá uma.</span>`;
+  else action = html`<span class="wild__hint">Cada hábito tira vida. Bata a meta (${pct(goal)}) para jogar Poké Bola · hoje ${pct(progress ?? 0)}.</span>`;
+  return html`
+    <section class="card wild${attack ? ' is-attack' : ''}${wild.caught ? ' is-caught' : ''}" aria-label="Encontro do dia">
+      <div class="wild__grass">
+        <img class="sprite" src="${sprite(wild.species)}" alt="${name} selvagem">
+        ${raw(ball(30))}
+      </div>
+      <div class="wild__body">
+        <span class="wild__kicker">ENCONTRO DO DIA</span>
+        <span class="wild__name">${name} selvagem</span>
+        <div class="hp"><div class="hp__fill${wild.hp < 0.25 ? ' is-low' : ''}" style="width: ${wild.hp * 100}%"></div></div>
+        ${raw(action)}
+      </div>
+    </section>`;
 }
 
 function yesterdayLine(state, today) {
   const last = state.lastDay;
   if (!last || last.day !== addDays(today, -1)) return '';
   return last.met
-    ? html`<p class="banner banner--good">Ontem você bateu a meta (${pct(last.progress)}): +1 Pokébola.</p>`
+    ? html`<p class="banner banner--good">Ontem você bateu a meta (${pct(last.progress)}): +1 Poké Bola.</p>`
     : html`<p class="banner banner--bad">Ontem ficou em ${pct(last.progress)}, abaixo da meta: o time perdeu 1 nível.</p>`;
 }
 
@@ -224,19 +258,17 @@ async function throwBall(view, dex, state, today) {
   // O resultado e gravado antes da animacao: sair no meio nao da outra chance.
   await db.addEvent({ type: 'catch', day: today, species: wild.species, level: wild.level, caught });
   buzz(30);
-  view.querySelector('.arena').classList.add('is-throwing', caught ? 'will-catch' : 'will-escape');
+  view.querySelector('.wild').classList.add('is-throwing', caught ? 'will-catch' : 'will-escape');
   await sleep(2200);
   const name = dex.byId.get(wild.species).name;
-  toast(caught ? `Pegou! ${name} entrou no nível 1.` : `${name} escapou da Pokébola!`, 3200);
+  toast(caught ? `Pegou! ${name} entrou no nível 1.` : `${name} escapou da Poké Bola!`, 3200);
   refresh();
 }
 
 export async function render(view) {
   setTop({
-    title: APP_NAME,
-    actions: html`
-      <a class="icon-btn" href="#/habitos" aria-label="Todos os hábitos">${raw(LIST)}</a>
-      <a class="icon-btn" href="#/ajustes" aria-label="Ajustes">${raw(GEAR)}</a>`,
+    title: 'Hoje',
+    actions: html`<a class="icon-btn" href="#/habitos" aria-label="Todos os hábitos">${raw(LIST)}</a>`,
   });
 
   const today = db.dayOf();
@@ -257,41 +289,24 @@ export async function render(view) {
     return;
   }
 
-  const play = g ? html`
+  const top = g ? html`
+    ${raw(trainerBar(g.dex, g.state))}
     ${raw(yesterdayLine(g.state, today))}
-    ${raw(arena(g.dex, g.state, attack, progress))}
-    ${raw(capturePanel(g.dex, g.state, progress))}` : '';
+    ${raw(goalCard(g.dex, g.state, list, progress, attack))}
+    ${raw(wildCard(g.dex, g.state, progress, attack))}` : '';
 
   if (!habits.some((h) => !h.archived)) {
     view.innerHTML = html`
-      ${raw(play)}
-      <section class="hero">
-        <p class="hero__left">Nenhum hábito ainda.</p>
-      </section>
+      ${raw(top)}
       <a class="btn btn--primary btn--lg btn--block" href="#/habito/novo">Criar meu primeiro hábito</a>`;
     return;
   }
 
   view.innerHTML = html`
     ${raw(reminderNotice(list))}
-    ${raw(play)}
-    <section class="hero hero--compact">
-      <div class="hero__num">
-        <span class="data hero__total">${list.filter((i) => i.done).length}</span>
-        <span class="hero__goal">/ ${list.length}</span>
-      </div>
-      <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100"
-           aria-valuenow="${Math.round((progress ?? 0) * 100)}" aria-label="Progresso de hoje">
-        <div class="meter__fill" style="width: ${(progress ?? 0) * 100}%"></div>
-        <div class="meter__goal" style="left: ${db.settings().goal * 100}%"></div>
-      </div>
-      <p class="hero__left">${list.length ? heroLine(list) : 'Nenhum hábito pra hoje'}</p>
-    </section>
-
-    ${list.length ? raw(html`<ul class="card habits">${raw(list.map((i) => habitRow(i, subline(i, checks, today))).join(''))}</ul>`) : ''}
-
+    ${raw(top)}
+    ${list.length ? raw(html`<ul class="habs" aria-label="Hábitos de hoje">${raw(list.map((i) => habitRow(i, subline(i, checks, today))).join(''))}</ul>`) : ''}
     ${raw(await reminderLine())}
-
     <a class="btn btn--ghost btn--block" href="#/habito/novo">+ Novo hábito</a>
   `;
 

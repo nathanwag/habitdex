@@ -210,7 +210,14 @@ se o cron tentou enviar.
 
 ## Visual
 
-Paleta neutra provisória (verde de "feito"), com tokens em `:root` e tema
-escuro pelo sistema. A identidade (nome, mascote que reage ao
-`dayProgress`, ícones) ainda não existe. Inputs usam 16px (abaixo disso o
-Safari dá zoom). Caminhos são sempre relativos, e nada é carregado de fora.
+Visual "HOME" (estilo Pokémon HOME/GO, opção C do canvas do mock): fundo
+claro, cards arredondados com sombra chapada (`--shadow`), vermelho da Poké
+Bola como cor de ação, Fredoka nos títulos e números e Nunito no texto. As
+fontes ficam em `www/fonts` (nada é carregado de fora) e entram no `ASSETS`.
+Tema escuro pelo sistema. Inputs usam 16px (abaixo disso o Safari dá zoom).
+Caminhos são sempre relativos.
+
+- **Ícones do jogo** (`ball`, `emptyBall`, `candy` em `pokemon.js`) têm
+  `stroke="none"` nas partes preenchidas: o CSS global põe stroke em todo svg.
+- **A barra de baixo** (`#tabs`) tem a Poké Bola no centro (Hoje) e aparece só
+  nas telas principais, Ajustes inclusive.
