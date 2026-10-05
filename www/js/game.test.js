@@ -2,15 +2,12 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { play } from './game.js';
 
-// Pokedex de mentira no formato de www/data/pokedex.json. A curva
-// medium-fast e a oficial: nivel n custa n^3 de XP acumulado (nivel 1 = 0).
-const cube = Array.from({ length: 100 }, (_, i) => (i === 0 ? 0 : (i + 1) ** 3));
+// Pokedex de mentira no formato de www/data/pokedex.json.
 const species = (id, name, extra = {}) => ({
   id, name, gen: 1, types: ['normal'], capture: 45, growth: 'medium-fast', legendary: false, mythical: false,
   evolvesFrom: null, evolutions: [], ...extra,
 });
 const dex = {
-  growth: { 'medium-fast': cube },
   pokemon: [
     species(4, 'Charmander', { types: ['fire'], evolutions: [{ to: 5, trigger: 'level-up', level: 16 }] }),
     species(5, 'Charmeleon', { evolvesFrom: 4 }),
@@ -26,45 +23,47 @@ test('sem inicial o jogo nao comecou; com ele, o time e o inicial no nivel 5', (
   assert.equal(play(base, dex).started, false);
   const state = play({ ...base, events: [{ type: 'start', day: '2026-10-05', species: 4 }] }, dex);
   assert.equal(state.started, true);
-  assert.deepEqual(state.party, [{ uid: 1, species: 4, level: 5, xp: 125 }]);
+  assert.deepEqual(state.party, [{ uid: 1, species: 4, level: 5 }]);
 });
 
 const check = (habitId, day) => ({ habitId, day, at: `${day}T12:00:00.000Z` });
 const started = (day = '2026-10-05', extra = {}) => ({
   ...base, events: [{ type: 'start', day, species: 4 }], ...extra,
 });
+// Um check do habito 1 em cada dia de `from` ate `to`.
+const everyDay = (from, to) => {
+  const out = [];
+  for (let d = new Date(`${from}T12:00:00Z`); d.toISOString().slice(0, 10) <= to; d.setUTCDate(d.getUTCDate() + 1)) {
+    out.push(check(1, d.toISOString().slice(0, 10)));
+  }
+  return out;
+};
 
-test('cada habito feito da ao time o XP de vencer um selvagem do nivel medio dele', () => {
-  // Nivel 5: 100 * 5 / 7 = 71 por habito. 125 + 71 + 71 = 267, que passa
-  // dos 216 do nivel 6. O check de antes do inicio nao conta.
-  const state = play(started('2026-10-05', {
-    habits: [daily(1), daily(2)],
-    checks: [check(1, '2026-10-04'), check(1, '2026-10-05'), check(2, '2026-10-05')],
-  }), dex);
-  assert.deepEqual(state.party, [{ uid: 1, species: 4, level: 6, xp: 267 }]);
-});
-
-const many = (n, day) => ({
-  habits: Array.from({ length: n }, (_, i) => daily(i + 1)),
-  checks: Array.from({ length: n }, (_, i) => check(i + 1, day)),
+test('bater a meta sobe o time um nivel na hora; abaixo dela nao sobe, e desmarcar desfaz', () => {
+  const two = (checks) => play(started('2026-10-05', { habits: [daily(1), daily(2)], checks }), dex).party[0].level;
+  assert.equal(two([check(1, '2026-10-05'), check(2, '2026-10-05')]), 6);
+  // 1 de 2 e 50%, abaixo da meta de 80%.
+  assert.equal(two([check(1, '2026-10-05')]), 5);
+  // Check de antes do inicio nao conta.
+  assert.equal(two([check(1, '2026-10-04'), check(2, '2026-10-04')]), 5);
 });
 
 test('ao chegar no nivel de evolucao, o pokemon evolui', () => {
-  const at26 = play(started('2026-10-05', many(26, '2026-10-05')), dex).party[0];
-  assert.deepEqual([at26.species, at26.level], [4, 15]);
-  const at27 = play(started('2026-10-05', many(27, '2026-10-05')), dex).party[0];
-  assert.deepEqual([at27.species, at27.level], [5, 16]);
+  // 25/09 a 05/10 sao 11 dias na meta: 5 + 11 = 16.
+  const at16 = play(started('2026-09-25', { checks: everyDay('2026-09-25', '2026-10-05') }), dex).party[0];
+  assert.deepEqual([at16.species, at16.level], [5, 16]);
+  const at15 = play(started('2026-09-26', { checks: everyDay('2026-09-26', '2026-10-05') }), dex).party[0];
+  assert.deepEqual([at15.species, at15.level], [4, 15]);
 });
 
-test('dia que termina abaixo da meta derruba um nivel, com o XP no comeco dele, sem desevoluir', () => {
-  // 10-03 feito (196 XP, nivel 5); 10-04 em branco: cai para o 4 (64 XP).
-  // Hoje (10-05) ainda nao acabou e nao conta.
+test('dia que termina abaixo da meta derruba um nivel, sem desevoluir', () => {
+  // 03/10 na meta (6); 04/10 em branco (5). Hoje (05/10) ainda nao acabou.
   const state = play(started('2026-10-03', { checks: [check(1, '2026-10-03')] }), dex);
-  assert.deepEqual(state.party[0], { uid: 1, species: 4, level: 4, xp: 64 });
+  assert.deepEqual(state.party[0], { uid: 1, species: 4, level: 5 });
 
   // Charmeleon nivel 16 que cai para 15 continua Charmeleon.
-  const evolved = play(started('2026-10-04', { ...many(27, '2026-10-04'), today: '2026-10-06' }), dex);
-  assert.deepEqual(evolved.party[0], { uid: 1, species: 5, level: 15, xp: 3375 });
+  const evolved = play(started('2026-09-24', { checks: everyDay('2026-09-24', '2026-10-04'), today: '2026-10-06' }), dex);
+  assert.deepEqual(evolved.party[0], { uid: 1, species: 5, level: 15 });
 });
 
 test('comeca com 5 Pokebolas e ganha uma a cada dia que fecha na meta', () => {
@@ -119,25 +118,15 @@ test('cada arremesso gasta uma Pokebola e a captura entra no time no nivel em qu
   }), dex);
   // 5 iniciais + 2 dias na meta - 2 arremessos.
   assert.equal(state.balls, 5);
+  // O Charmander sobe nos dois dias; o Pidgey entra no 3 e nao sobe no dia em
+  // que foi pego (a meta do dia ja estava batida antes dele).
   assert.deepEqual(state.party, [
-    { uid: 1, species: 4, level: 6, xp: 267 },
-    { uid: 2, species: 16, level: 3, xp: 27 },
+    { uid: 1, species: 4, level: 7 },
+    { uid: 2, species: 16, level: 3 },
   ]);
 });
 
-test('o XP de cada habito e dividido pelo time', () => {
-  // Time nivel 6 e 3: media 4,5 arredonda para 5, 71 de XP, 35 para cada.
-  const state = play(started('2026-10-03', {
-    checks: [check(1, '2026-10-03'), check(1, '2026-10-04'), check(1, '2026-10-05')],
-    events: [
-      { type: 'start', day: '2026-10-03', species: 4 },
-      { type: 'catch', day: '2026-10-04', species: 16, level: 3, caught: true },
-    ],
-  }), dex);
-  assert.deepEqual(state.party.map((m) => m.xp), [267 + 35, 27 + 35]);
-});
-
-test('do setimo em diante a captura vai para a caixa, que nao ganha XP mas tambem perde nivel', () => {
+test('do setimo em diante a captura vai para a caixa, que fica congelada: nao sobe nem cai', () => {
   const catches = Array.from({ length: 6 }, () => ({ type: 'catch', day: '2026-10-03', species: 16, level: 3, caught: true }));
   const state = play(started('2026-10-01', {
     today: '2026-10-04',
@@ -145,8 +134,9 @@ test('do setimo em diante a captura vai para a caixa, que nao ganha XP mas tambe
     events: [{ type: 'start', day: '2026-10-01', species: 4 }, ...catches],
   }), dex);
   assert.equal(state.party.length, 6);
-  // 10-03 em branco: todos caem do 3 para o 2, inclusive o da caixa.
-  assert.deepEqual(state.box, [{ uid: 7, species: 16, level: 2, xp: 8 }]);
+  // 03/10 em branco: o time cai um nivel; o da caixa fica no 3.
+  assert.deepEqual(state.party.map((m) => m.level), [6, 2, 2, 2, 2, 2]);
+  assert.deepEqual(state.box, [{ uid: 7, species: 16, level: 3 }]);
   assert.equal(state.balls, 1);
 });
 
@@ -219,18 +209,30 @@ test('o time que depende do inicial segue o tipo do seu primeiro pokemon (fogo s
   assert.deepEqual(blueWith(16).team.map((p) => p.species), [18, 9]);
 });
 
-test('vencer o campeao leva a proxima regiao, e os selvagens passam a ser da geracao dela', () => {
-  const state = play(started('2026-10-05', { events: [...started().events, ...wins(4)] }), leagueDex);
+test('vencer o campeao manda time e caixa para o Hall da Fama e pede um inicial para a proxima regiao', () => {
+  const events = [...started().events, ...wins(4)];
+  const state = play(started('2026-10-05', { events }), leagueDex);
   assert.deepEqual([state.challenge.region, state.challenge.name], ['johto', 'Falkner']);
+  assert.deepEqual(state.hall, [{ region: 'kanto', team: [{ uid: 1, species: 4, level: 5 }], box: [] }]);
+  assert.deepEqual([state.party, state.box, state.wild], [[], [], null]);
+  assert.deepEqual(state.needsStarter, { region: 'johto', gen: 2 });
+});
+
+test('com o novo inicial a jornada recomeca no nivel 5, e os selvagens sao da geracao da regiao', () => {
+  const events = [...started().events, ...wins(4), { type: 'start', day: '2026-10-05', species: 7 }];
+  const state = play(started('2026-10-05', { events }), leagueDex);
+  assert.deepEqual(state.party, [{ uid: 2, species: 7, level: 5 }]);
+  assert.equal(state.needsStarter, null);
   assert.equal(state.wild.species, 161);
+  assert.deepEqual(state.caught, [4, 7]);
 });
 
 test('a Pokedex marca como capturado o que voce teve (evolucoes inclusive) e como visto tambem os selvagens de cada dia', () => {
   const onlyPidgeyWild = { ...dex, sprites: [16] };
-  const state = play(started('2026-10-03', {
-    ...many(27, '2026-10-03'),
+  const state = play(started('2026-09-25', {
+    checks: everyDay('2026-09-25', '2026-10-05'),
     events: [
-      { type: 'start', day: '2026-10-03', species: 4 },
+      { type: 'start', day: '2026-09-25', species: 4 },
       { type: 'catch', day: '2026-10-04', species: 16, level: 3, caught: false },
     ],
   }), onlyPidgeyWild);

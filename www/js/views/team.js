@@ -1,7 +1,7 @@
-/* Time — os ate 6 que ganham XP e a caixa. */
+/* Time — os ate 6 que sobem e caem de nivel, a caixa e o Hall da Fama. */
 
 import {
-  game, sprite, xpProgress, nextEvolution, TYPE_NAMES,
+  game, sprite, nextEvolution, TYPE_NAMES,
 } from '../pokemon.js';
 import { html, raw, setTop } from '../ui.js';
 
@@ -18,7 +18,6 @@ function card(dex, mon) {
       <div class="mon__body">
         <div class="mon__row"><strong>${p.name}</strong><span class="data">Nv ${mon.level}</span></div>
         <div class="mon__types">${types(p)}</div>
-        <div class="xp"><div class="xp__fill" style="width: ${xpProgress(dex, mon) * 100}%"></div></div>
         <span class="mon__sub">${evo ? `Evolui para ${dex.byId.get(evo.to).name} no nível ${evo.level}` : 'Sem evolução por nível'}</span>
       </div>
     </li>`;
@@ -27,12 +26,12 @@ function card(dex, mon) {
 export async function render(view) {
   setTop({ title: 'Time' });
   const { dex, state } = await game();
-  if (!state.started) {
+  if (!state.started || state.needsStarter) {
     view.innerHTML = html`<a class="btn btn--primary btn--block" href="#/">Escolha seu inicial no Hoje</a>`;
     return;
   }
   view.innerHTML = html`
-    <p class="status">${state.balls} Pokébola${state.balls === 1 ? '' : 's'} · o XP de cada hábito é dividido entre o time.</p>
+    <p class="status">${state.balls} Pokébola${state.balls === 1 ? '' : 's'} · cada dia na meta o time sobe 1 nível; abaixo dela, perde 1.</p>
     <section class="sec">
       <h2 class="section-title">Time (${state.party.length}/6)</h2>
       <ul class="card mons">${raw(state.party.map((m) => card(dex, m)).join(''))}</ul>
@@ -40,8 +39,19 @@ export async function render(view) {
     ${raw(state.box.length ? html`
       <section class="sec">
         <h2 class="section-title">Caixa (${state.box.length})</h2>
-        <p class="hint">Não ganham XP, mas também perdem nível nos dias abaixo da meta.</p>
+        <p class="hint">Ficam congelados: não sobem nem caem de nível.</p>
         <ul class="card mons">${raw(state.box.map((m) => card(dex, m)).join(''))}</ul>
+      </section>` : '')}
+    ${raw(state.hall.length ? html`
+      <section class="sec">
+        <h2 class="section-title">Hall da Fama</h2>
+        ${raw(state.hall.map((h) => html`
+          <div class="card card__pad stack">
+            <strong>${dex.regions.find((r) => r.id === h.region).name}</strong>
+            <ul class="lineup">${raw(h.team.map((m) => html`
+              <li><img class="sprite" src="${sprite(m.species)}" alt="${dex.byId.get(m.species).name}" loading="lazy">
+                <span class="data">Nv ${m.level}</span></li>`).join(''))}</ul>
+          </div>`).join(''))}
       </section>` : '')}
   `;
 }

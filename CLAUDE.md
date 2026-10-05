@@ -69,11 +69,15 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   dia desde o evento `start`, a partir de `habits`, `checks` e `events` (as
   escolhas do jogador). Por isso marcar um dia passado já corrige níveis e
   Pokébolas. Não guarde nível nem XP: guarde o evento.
-- **Regras do motor:** inicial no nível 5 e 5 Pokébolas; cada hábito feito dá
-  ao time (até 6; a caixa não ganha) o XP de um selvagem do nível médio
-  (`100 * nível / 7`), dividido igual; evolução só por nível puro. Na virada,
-  dia na meta (`goal`, 0 a 1) ganha 1 Pokébola; abaixo dela todos, caixa
-  inclusive, caem 1 nível (mínimo 1, XP no começo do nível, sem desevoluir).
+- **Regras do motor:** o nível sobe pela meta, não por XP: dia na meta
+  (`goal`, 0 a 1) sobe o time (até 6) 1 nível na hora; na virada ainda dá 1
+  Pokébola, e dia abaixo da meta tira 1 nível do time (mínimo 1, sem
+  desevoluir). A caixa fica congelada. Quem foi pego no dia não sobe nele.
+  Evolução só por nível puro. Inicial no nível 5 e 5 Pokébolas.
+- **Uma jornada por região:** vencer o campeão manda time e caixa para o
+  Hall da Fama (`hall`) e esvazia o time; `needsStarter` pede um novo
+  `start` (a tela oferece os 3 iniciais da geração). Assim os níveis
+  originais de cada liga continuam valendo.
 - **O selvagem do dia sai de um sorteio pela data** (`seeded`): o mesmo em
   qualquer recálculo. Forma básica da geração da região (por ora só Gen 1),
   sem lendário/mítico e com sprite. A chance é a fórmula da Gen 3/4.

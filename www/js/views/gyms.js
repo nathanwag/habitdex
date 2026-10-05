@@ -22,7 +22,7 @@ const typeTag = (t) => (t ? html`<span class="type type--${t}">${TYPE_NAMES[t] ?
 export async function render(view) {
   setTop({ title: 'Ginásios' });
   const { dex, state } = await game();
-  if (!state.started) {
+  if (!state.started || state.needsStarter) {
     view.innerHTML = html`<a class="btn btn--primary btn--block" href="#/">Escolha seu inicial no Hoje</a>`;
     return;
   }
@@ -96,7 +96,7 @@ export async function renderBattle(view) {
   setTop({ title: 'Batalha', back: '#/ginasios' });
   const { dex, state, today } = await game();
   const ch = state.challenge;
-  if (!state.started || !ch || !ch.canBattle) { location.hash = '#/ginasios'; return; }
+  if (!state.started || !ch || !ch.canBattle || !state.party.length) { location.hash = '#/ginasios'; return; }
 
   // A luta inteira e sorteada e gravada antes de animar: sair no meio nao da
   // outra chance no mesmo dia.
@@ -203,7 +203,7 @@ export async function renderBattle(view) {
   $('[data-result]').innerHTML = html`
     <section class="card card__pad stack">
       <p><strong>${won ? `Vitória contra ${ch.name}!` : 'Derrota.'}</strong>
-        ${won ? (ch.kind === 'champion' ? 'Região vencida: a próxima foi liberada.' : 'O próximo desafio já está liberado.')
+        ${won ? (ch.kind === 'champion' ? 'Liga vencida! Seu time vai para o Hall da Fama e a próxima região começa com um inicial novo.' : 'O próximo desafio já está liberado.')
           : 'Dá para tentar de novo amanhã. Até lá, cada hábito feito deixa o time mais forte.'}</p>
       <a class="btn btn--primary btn--block" href="#/ginasios">Voltar aos ginásios</a>
     </section>`;

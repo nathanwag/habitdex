@@ -45,13 +45,14 @@ export const TYPE_NAMES = {
   fairy: 'Fada',
 };
 
-/** Quanto falta (0 a 1) do nivel atual para o proximo. */
-export function xpProgress(dex, mon) {
-  const curve = dex.growth[dex.byId.get(mon.species).growth];
-  if (mon.level >= 100) return 1;
-  const lo = curve[mon.level - 1];
-  return (mon.xp - lo) / (curve[mon.level] - lo);
+/** Quanto do caminho ate o proximo nivel (0 a 1): a parte da meta de hoje ja
+ *  cumprida. Bater a meta sobe o time na hora. */
+export function toNextLevel(progress, goal) {
+  return Math.min(1, (progress ?? 0) / goal);
 }
+
+/** Os 3 iniciais da geracao `gen`. */
+export const startersOf = (gen) => STARTERS.slice((gen - 1) * 3, gen * 3);
 
 /** A proxima evolucao por nivel, se houver: { to, level }. */
 export function nextEvolution(dex, species) {

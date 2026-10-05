@@ -77,7 +77,7 @@ export async function render(view) {
     <section class="sec">
       <h2 class="section-title">Jogo</h2>
       <nav class="card">
-        ${raw(item({ href: '#/ajustes/meta', ico: 'target', title: 'Meta do dia', sub: `${Math.round(s.goal * 100)}% dos hábitos · abaixo disso o time perde 1 nível` }))}
+        ${raw(item({ href: '#/ajustes/meta', ico: 'target', title: 'Meta do dia', sub: `${Math.round(s.goal * 100)}% dos hábitos · na meta o time sobe 1 nível, abaixo perde 1` }))}
         <button class="set-item" type="button" data-action="reset-game">
           <span class="set-item__ico">${icon('reset')}</span>
           <span class="set-item__text"><span class="set-item__title">Recomeçar o jogo</span>
@@ -130,7 +130,7 @@ export async function renderGoal(view) {
           ${raw(GOALS.map((g) => html`<button class="seg__opt" type="button" role="radio" data-goal="${g}"
             aria-checked="${String(g === goal)}">${Math.round(g * 100)}%</button>`).join(''))}
         </div>
-        <p class="hint">Na virada do dia, se a parte dos hábitos feitos ficar abaixo da meta, todos os pokémon perdem 1 nível. Na meta, você ganha 1 Pokébola, e só batendo a meta dá para jogar Pokébola no selvagem do dia.</p>
+        <p class="hint">Bater a meta sobe o time 1 nível na hora e, na virada, dá 1 Pokébola. Se o dia fechar abaixo da meta, o time perde 1 nível. Só batendo a meta dá para jogar Pokébola no selvagem do dia.</p>
       </div>
     </section>
   `;

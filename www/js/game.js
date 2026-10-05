@@ -9,9 +9,6 @@ import { addDays } from './reminder.js';
 const START_LEVEL = 5;
 const START_BALLS = 5;
 const PARTY_SIZE = 6;
-// XP de vencer um selvagem comum (experiencia base ~100) do nivel do time,
-// pela formula classica b * L / 7.
-const WILD_BASE_XP = 100;
 
 // Sorteio que depende so da data: o selvagem de um dia e sempre o mesmo,
 // em qualquer aparelho e a cada recalculo. FNV-1a + um passo do mulberry32.
@@ -27,32 +24,27 @@ export function play(input, dex) {
   const start = input.events.find((e) => e.type === 'start');
   if (!start) return { started: false, party: [] };
   const byId = new Map(dex.pokemon.map((p) => [p.id, p]));
-  const curve = (mon) => dex.growth[byId.get(mon.species).growth];
-  const levelOf = (mon) => {
-    const xps = curve(mon);
-    let level = 1;
-    while (level < 100 && xps[level] <= mon.xp) level++;
-    return level;
-  };
 
-  const party = [{ uid: 1, species: start.species, level: START_LEVEL, xp: 0 }];
-  party[0].xp = curve(party[0])[START_LEVEL - 1];
+  const party = [];
   const box = [];
+  const hall = [];
+  let nextUid = 1;
   let balls = START_BALLS;
   let lastDay = null;
-  const caught = new Set([start.species]);
+  const caught = new Set();
   const seen = new Set();
+  const plain = (list) => list.map(({ caughtOn: _, ...m }) => m);
+
+  // Cada jornada (uma por regiao) comeca com um inicial no nivel 5. Um
+  // `start` so vale com o time vazio: no comeco e depois de cada campeao.
+  const begin = (e) => {
+    if (party.length) return;
+    party.push({ uid: nextUid++, species: e.species, level: START_LEVEL });
+    caught.add(e.species);
+  };
 
   const avgLevel = () => Math.round(party.reduce((s, m) => s + m.level, 0) / party.length);
-  const gain = () => {
-    const avg = avgLevel();
-    const share = Math.floor(Math.floor((WILD_BASE_XP * avg) / 7) / party.length);
-    for (const mon of party) {
-      mon.xp += share;
-      mon.level = levelOf(mon);
-      evolve(mon);
-    }
-  };
+  const progressOf = (day) => dayProgress(todayList(input.habits, input.checks, day));
 
   // So a evolucao por nivel puro; pedra, amizade e troca ficam para depois.
   const evolve = (mon) => {
@@ -64,18 +56,25 @@ export function play(input, dex) {
     evolve(mon);
   };
 
-  // Na virada: dia na meta ganha uma Pokebola; abaixo dela, todos caem um
-  // nivel (nunca abaixo do 1), com o XP no comeco dele. A especie fica:
-  // ninguem desevolui.
+  // Dia na meta: o time sobe um nivel, ja no dia (desmarcar desfaz, porque
+  // tudo e recalculado). Na virada, dia na meta ainda ganha uma Pokebola;
+  // abaixo dela o time cai um nivel (nunca abaixo do 1) sem desevoluir.
+  const levelUp = (day) => {
+    const progress = progressOf(day);
+    if (progress === null || progress < input.goal) return;
+    // Quem foi pego hoje entra no nivel da captura: a meta ja estava batida.
+    for (const mon of party.filter((m) => m.caughtOn !== day)) {
+      mon.level = Math.min(100, mon.level + 1);
+      evolve(mon);
+    }
+  };
   const turnover = (day) => {
-    const progress = dayProgress(todayList(input.habits, input.checks, day));
+    const progress = progressOf(day);
     if (progress === null) return;
     lastDay = { day, progress, met: progress >= input.goal };
     if (lastDay.met) { balls++; return; }
-    for (const mon of [...party, ...box]) {
-      mon.level = Math.max(1, mon.level - 1);
-      mon.xp = curve(mon)[mon.level - 1];
-    }
+    // A caixa fica congelada: so o time sobe e cai.
+    for (const mon of party) mon.level = Math.max(1, mon.level - 1);
   };
 
   // A tela sorteia o arremesso com a chance de `wild` e grava o resultado:
@@ -84,8 +83,7 @@ export function play(input, dex) {
     balls--;
     if (!e.caught) return;
     caught.add(e.species);
-    const mon = { uid: party.length + box.length + 1, species: e.species, level: e.level, xp: 0 };
-    mon.xp = curve(mon)[mon.level - 1];
+    const mon = { uid: nextUid++, species: e.species, level: e.level, caughtOn: e.day };
     (party.length < PARTY_SIZE ? party : box).push(mon);
   };
 
@@ -101,11 +99,18 @@ export function play(input, dex) {
   let region = 0;
   let step = 0;
   let lostOn = null;
+  // Vencer o campeao fecha a jornada: time e caixa vao para o Hall da Fama e
+  // a proxima regiao comeca do zero, com os niveis originais do jogo dela.
   const fight = (e) => {
     if (!e.won) { lostOn = e.day; return; }
     lostOn = null;
     step++;
-    if (step === stepsOf(regions[region]).length) { region++; step = 0; }
+    if (step < stepsOf(regions[region]).length) return;
+    hall.push({ region: regions[region].id, team: plain(party), box: plain(box) });
+    party.length = 0;
+    box.length = 0;
+    region++;
+    step = 0;
   };
 
   // Selvagens: formas basicas da geracao da regiao atual (as regioes estao
@@ -123,13 +128,14 @@ export function play(input, dex) {
   };
 
   for (let day = start.day; day <= input.today; day = addDays(day, 1)) {
-    for (const c of input.checks) if (c.day === day) gain();
     for (const e of input.events) {
       if (e.day !== day) continue;
+      if (e.type === 'start') begin(e);
       if (e.type === 'catch') throwBall(e);
       if (e.type === 'battle') fight(e);
     }
-    seen.add(wildOf(day).id);
+    if (party.length) seen.add(wildOf(day).id);
+    levelUp(day);
     if (day < input.today) turnover(day);
   }
 
@@ -138,20 +144,32 @@ export function play(input, dex) {
     const { kind, index, boss } = stepsOf(regions[region])[step];
     // O rival monta o time contra o inicial do jogador: aqui, o tipo do
     // primeiro do time (fogo, se nao for fogo, agua nem grama).
-    const types = byId.get(party[0].species).types;
+    const types = party.length ? byId.get(party[0].species).types : [];
     const starter = ['fire', 'water', 'grass'].find((t) => types.includes(t)) ?? 'fire';
     challenge = {
       region: regions[region].id, kind, index, name: boss.name, type: boss.type,
       team: boss.team.filter((p) => !p.starter || p.starter === starter)
         .map(({ starter: _, ...p }) => p),
-      canBattle: lostOn !== input.today,
+      canBattle: party.length > 0 && lostOn !== input.today,
     };
   }
+
+  const sorted = (set) => [...set].sort((a, b) => a - b);
+  const result = {
+    started: true, party: plain(party), box: plain(box), hall, balls, challenge, lastDay,
+    caught: sorted(caught), seen: sorted(new Set([...seen, ...caught])),
+    wild: null, needsStarter: null,
+  };
+  if (!party.length) {
+    if (region < regions.length) result.needsStarter = { region: regions[region].id, gen: region + 1 };
+    return result;
+  }
+
   const species = wildOf(input.today);
   // Cada habito feito hoje tira vida do selvagem. Captura pela formula da
   // Gen 3/4 com Pokebola comum e sem status: (3M - 2H) * taxa / 3M, sobre 255,
   // com a vida em centesimos e no minimo 1.
-  const progress = dayProgress(todayList(input.habits, input.checks, input.today));
+  const progress = progressOf(input.today);
   const hp = progress === null ? 1 : 1 - progress;
   const h = Math.max(1, Math.round(hp * 100));
   const odds = Math.floor(((300 - 2 * h) * species.capture) / 300);
@@ -165,10 +183,5 @@ export function play(input, dex) {
     caught: Boolean(catchToday),
   };
   wild.canThrow = !wild.caught && progress !== null && progress >= input.goal && balls > 0;
-
-  const sorted = (set) => [...set].sort((a, b) => a - b);
-  return {
-    started: true, party, box, balls, wild, challenge, lastDay,
-    caught: sorted(caught), seen: sorted(new Set([...seen, ...caught])),
-  };
+  return { ...result, wild };
 }

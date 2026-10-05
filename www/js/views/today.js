@@ -4,7 +4,7 @@ import * as db from '../db.js';
 import * as push from '../push.js';
 import { dayProgress, streak, todayList } from '../habits.js';
 import {
-  game, sprite, xpProgress, STARTERS,
+  game, sprite, toNextLevel, startersOf, STARTERS,
 } from '../pokemon.js';
 import { addDays, SNOOZE_MIN } from '../reminder.js';
 import {
@@ -132,13 +132,18 @@ const BALL = '<svg class="ball" viewBox="0 0 40 40" aria-hidden="true"><path d="
 const pct = (x) => `${Math.round(x * 100)}%`;
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
 
-function starterPicker(dex) {
+function starterPicker(dex, state) {
+  // A primeira jornada aceita qualquer um dos 27; as seguintes, os 3 da regiao.
+  const next = state.needsStarter;
+  const region = next && dex.regions.find((r) => r.id === next.region);
+  const options = next ? startersOf(next.gen) : STARTERS;
   return html`
     <section class="sec">
-      <h2 class="section-title">Escolha seu inicial</h2>
-      <p class="hint">Ele começa no nível 5. Cada hábito feito dá XP ao time; dia abaixo da meta faz todo mundo perder um nível.</p>
+      ${raw(next ? html`<p class="banner banner--good">Liga vencida! Seu time foi para o Hall da Fama. A jornada continua em ${region.name}.</p>` : '')}
+      <h2 class="section-title">${next ? `Inicial de ${region.name}` : 'Escolha seu inicial'}</h2>
+      <p class="hint">Ele começa no nível 5. Cada dia na meta o time sobe 1 nível; dia abaixo da meta, perde 1.</p>
       <div class="starters">
-        ${raw(STARTERS.map((id) => html`
+        ${raw(options.map((id) => html`
           <button class="starter" type="button" data-starter="${id}">
             <img class="sprite" src="${sprite(id)}" alt="" loading="lazy">
             <span>${dex.byId.get(id).name}</span>
@@ -147,7 +152,7 @@ function starterPicker(dex) {
     </section>`;
 }
 
-function arena(dex, state, attack) {
+function arena(dex, state, attack, progress) {
   const { wild } = state;
   const me = state.party[0];
   const foe = dex.byId.get(wild.species);
@@ -168,7 +173,7 @@ function arena(dex, state, attack) {
       </div>
       <div class="hud hud--me">
         <div class="hud__row"><strong>${mine.name}</strong><span class="data">Nv ${me.level}</span></div>
-        <div class="xp"><div class="xp__fill" style="width: ${xpProgress(dex, me) * 100}%"></div></div>
+        <div class="xp" title="Meta de hoje"><div class="xp__fill" style="width: ${toNextLevel(progress, db.settings().goal) * 100}%"></div></div>
       </div>
     </section>`;
 }
@@ -243,8 +248,8 @@ export async function render(view) {
   const attack = attackPending;
   attackPending = false;
 
-  if (g && !g.state.started) {
-    view.innerHTML = starterPicker(g.dex);
+  if (g && (!g.state.started || g.state.needsStarter)) {
+    view.innerHTML = starterPicker(g.dex, g.state);
     view.onclick = (e) => {
       const btn = e.target.closest('[data-starter]');
       if (btn) chooseStarter(g.dex, Number(btn.dataset.starter), today);
@@ -254,7 +259,7 @@ export async function render(view) {
 
   const play = g ? html`
     ${raw(yesterdayLine(g.state, today))}
-    ${raw(arena(g.dex, g.state, attack))}
+    ${raw(arena(g.dex, g.state, attack, progress))}
     ${raw(capturePanel(g.dex, g.state, progress))}` : '';
 
   if (!habits.some((h) => !h.archived)) {
