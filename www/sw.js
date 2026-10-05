@@ -4,7 +4,7 @@
  * cache-primeiro com revalidacao. Bumpar VERSION e como se deploya.
  */
 
-const VERSION = 'habitos-v6';
+const VERSION = 'habitos-v7';
 // Os sprites (milhares, baixados sob demanda) ficam fora do VERSION para nao
 // serem apagados e baixados de novo a cada deploy.
 const SPRITES = 'habitos-sprites-v1';
@@ -23,6 +23,7 @@ const ASSETS = [
   './js/db.js',
   './js/reminder.js',
   './js/habits.js',
+  './js/game.js',
   './js/push.js',
   './js/views/today.js',
   './js/views/habit.js',

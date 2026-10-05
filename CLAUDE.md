@@ -54,6 +54,20 @@ versionados no repo (sprites ~140 MB); não edite à mão.
   `grass`) marca a variante do time que depende do inicial do jogador. Versões
   Black e Sword; Alola usa as 10 provas e Galar os finalistas da Champion Cup.
   Níveis são os originais de cada jogo (cada região recomeça baixo).
+- **`www/js/game.js` (`play`) recalcula o jogo inteiro a cada chamada**, dia a
+  dia desde o evento `start`, a partir de `habits`, `checks` e `events` (as
+  escolhas do jogador). Por isso marcar um dia passado já corrige níveis e
+  Pokébolas. Não guarde nível nem XP: guarde o evento.
+- **Regras do motor:** inicial no nível 5 e 5 Pokébolas; cada hábito feito dá
+  ao time (até 6; a caixa não ganha) o XP de um selvagem do nível médio
+  (`100 * nível / 7`), dividido igual; evolução só por nível puro. Na virada,
+  dia na meta (`goal`, 0 a 1) ganha 1 Pokébola; abaixo dela todos, caixa
+  inclusive, caem 1 nível (mínimo 1, XP no começo do nível, sem desevoluir).
+- **O selvagem do dia sai de um sorteio pela data** (`seeded`): o mesmo em
+  qualquer recálculo. Forma básica da geração da região (por ora só Gen 1),
+  sem lendário/mítico e com sprite. A chance é a fórmula da Gen 3/4.
+- **Arremesso é sorteado pela tela e gravado com o resultado** (`catch` com
+  `caught`): o motor nunca sorteia captura de novo ao recalcular.
 - **Sprites ficam no cache `SPRITES` do `sw.js`**, fora do `VERSION`, para não
   serem baixados de novo a cada deploy. Não entram no `ASSETS`.
 
@@ -141,6 +155,7 @@ Só os módulos puros e o Worker são testados. Os seams são:
   `dueReminders`, `nextReminder` e `configError`
 - `habits.js`: `todayList`, `dayProgress`, `streak`, `habitHistory` e
   `syncState`
+- `game.js`: `play` (com uma Pokédex falsa pequena)
 - `worker/src/api.js` (`handleApi`) e `cron.js` (`handleCron`), com KV e
   `send` falsos
 - `scripts/pokedex/build.js` (`parseCsv`, `buildPokedex`) e
