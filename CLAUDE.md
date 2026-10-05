@@ -35,6 +35,17 @@ O app está virando um jogo de Pokémon (uso pessoal; arte e nomes são da
 Nintendo/Game Freak, não publicar). Dados e sprites são gerados por script e
 versionados no repo (sprites ~140 MB); não edite à mão.
 
+**As regras do jogo são provisórias.** O usuário vai usar o mock jogável e só
+então decidir como o jogo funciona (ritmo de XP, escala de nível entre
+regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
+
+- **Escolhas do jogo ficam no store `events`** (DB versão 2): `start`,
+  `catch` e `battle`, com o resultado já sorteado. A meta do dia é o ajuste
+  `goal` (0 a 1). "Recomeçar o jogo" em Ajustes apaga os eventos; hábitos e
+  checks ficam.
+- **`www/js/pokemon.js`** carrega `www/data/*.json` uma vez (estão no
+  `ASSETS`) e monta o estado com `game()`. As telas do jogo partem dele.
+
 - **`www/data/pokedex.json`**: `types`, `efficacy` (`efficacy.fire.grass === 2`,
   ausente = 1), `growth` (XP acumulado por nível, índice = nível − 1), `moves`
   (por id, todos, porque os chefes usam golpes de TM e de jogos antigos) e
@@ -157,6 +168,15 @@ versionados no repo (sprites ~140 MB); não edite à mão.
 - `#/ajustes` (`views/settings.js`): liga/desliga dos lembretes, teste,
   `/ajustes/virada` e `/ajustes/servidor` (token).
 - `#/feito?habito=&lembrete=`: o toque na notificação (marca e cai no Hoje).
+- O **Hoje** também tem a arena (selvagem do dia contra o primeiro do time;
+  marcar hábito anima o golpe), a Pokébola quando bate a meta, o resumo de
+  ontem e, antes do inicial, a escolha entre os 27.
+- `#/time` (`views/team.js`), `#/pokedex` (`views/pokedex.js`, sprite só de
+  quem foi visto) e `#/ginasios` (`views/gyms.js`): as abas do jogo, na barra
+  de baixo (`#tabs`, só nas telas principais).
+- `#/batalha` (`views/gyms.js`): a luta é sorteada inteira e gravada antes de
+  animar; sair no meio não dá outra chance.
+- `#/ajustes/meta`: meta do dia; Ajustes também tem "Recomeçar o jogo".
 
 ## Testes
 

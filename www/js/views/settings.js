@@ -12,6 +12,8 @@ const ICON = {
   moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
   send: '<path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/>',
   link: '<path d="M15 7h3a5 5 0 0 1 0 10h-3"/><path d="M9 17H6A5 5 0 0 1 6 7h3"/><path d="M8 12h8"/>',
+  target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  reset: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>',
 };
 const icon = (name) => raw(`<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`);
 const CHEVRON = raw('<svg class="set-item__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>');
@@ -73,6 +75,18 @@ export async function render(view) {
     </section>
 
     <section class="sec">
+      <h2 class="section-title">Jogo</h2>
+      <nav class="card">
+        ${raw(item({ href: '#/ajustes/meta', ico: 'target', title: 'Meta do dia', sub: `${Math.round(s.goal * 100)}% dos hábitos · abaixo disso o time perde 1 nível` }))}
+        <button class="set-item" type="button" data-action="reset-game">
+          <span class="set-item__ico">${icon('reset')}</span>
+          <span class="set-item__text"><span class="set-item__title">Recomeçar o jogo</span>
+            <span class="set-item__sub">Apaga inicial, capturas e batalhas; hábitos ficam</span></span>
+        </button>
+      </nav>
+    </section>
+
+    <section class="sec">
       <h2 class="section-title">Este aparelho</h2>
       <div class="card">
         ${raw(subscribed ? html`
@@ -91,7 +105,41 @@ export async function render(view) {
       return;
     }
     const action = e.target.closest('[data-action]');
+    if (action?.dataset.action === 'reset-game') { resetGame(); return; }
     if (action) runAction(action.dataset.action, action);
+  };
+}
+
+async function resetGame() {
+  // eslint-disable-next-line no-alert
+  if (!window.confirm('Recomeçar o jogo do zero? O inicial, as capturas e as batalhas somem; os hábitos ficam.')) return;
+  await db.clearEvents();
+  toast('Jogo recomeçado');
+  location.hash = '#/';
+}
+
+const GOALS = [0.5, 0.6, 0.7, 0.8, 0.9, 1];
+
+export async function renderGoal(view) {
+  setTop({ title: 'Meta do dia', back: '#/ajustes' });
+  const goal = db.settings().goal;
+  view.innerHTML = html`
+    <section class="sec">
+      <div class="card card__pad stack">
+        <div class="seg" role="radiogroup" aria-label="Meta do dia">
+          ${raw(GOALS.map((g) => html`<button class="seg__opt" type="button" role="radio" data-goal="${g}"
+            aria-checked="${String(g === goal)}">${Math.round(g * 100)}%</button>`).join(''))}
+        </div>
+        <p class="hint">Na virada do dia, se a parte dos hábitos feitos ficar abaixo da meta, todos os pokémon perdem 1 nível. Na meta, você ganha 1 Pokébola, e só batendo a meta dá para jogar Pokébola no selvagem do dia.</p>
+      </div>
+    </section>
+  `;
+  view.onclick = async (e) => {
+    const btn = e.target.closest('[data-goal]');
+    if (!btn) return;
+    await db.saveSettings({ goal: Number(btn.dataset.goal) });
+    toast('Meta salva');
+    refresh();
   };
 }
 

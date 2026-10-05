@@ -156,6 +156,8 @@ test('o selvagem de hoje, depois de capturado, nao aceita mais Pokebola', () => 
   const events = [...input.events, { type: 'catch', day: '2026-10-05', species: wild.species, level: wild.level, caught: true }];
   const after = play({ ...input, events }, dex).wild;
   assert.deepEqual([after.caught, after.canThrow], [true, false]);
+  // Com ele no time a media cai, mas o selvagem de hoje fica no nivel em que foi pego.
+  assert.equal(after.level, wild.level);
 });
 
 // Ligas de mentira no formato de www/data/gyms.json.

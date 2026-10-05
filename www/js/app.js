@@ -8,6 +8,9 @@ import * as habit from './views/habit.js';
 import * as habitForm from './views/habit-form.js';
 import * as habits from './views/habits.js';
 import * as settings from './views/settings.js';
+import * as team from './views/team.js';
+import * as pokedex from './views/pokedex.js';
+import * as gyms from './views/gyms.js';
 
 const ROUTES = {
   '/': today.render,
@@ -19,7 +22,24 @@ const ROUTES = {
   '/ajustes': settings.render,
   '/ajustes/virada': settings.renderDayStart,
   '/ajustes/servidor': settings.renderServer,
+  '/ajustes/meta': settings.renderGoal,
+  '/time': team.render,
+  '/pokedex': pokedex.render,
+  '/ginasios': gyms.render,
+  '/batalha': gyms.renderBattle,
 };
+
+// Abas do jogo: aparecem so nas telas principais.
+const TABS = ['/', '/time', '/pokedex', '/ginasios'];
+
+function markTab(path) {
+  const tabs = $('#tabs');
+  tabs.hidden = !TABS.includes(path);
+  for (const a of tabs.querySelectorAll('a')) {
+    if (a.dataset.tab === path) a.setAttribute('aria-current', 'page');
+    else a.removeAttribute('aria-current');
+  }
+}
 
 async function route() {
   closeSheet();
@@ -30,6 +50,7 @@ async function route() {
   view.oninput = null;
   view.onchange = null;
   view.onsubmit = null;
+  markTab(ROUTES[path] ? path : '/');
   try {
     await (ROUTES[path] || ROUTES['/'])(view, new URLSearchParams(query));
   } catch (err) {

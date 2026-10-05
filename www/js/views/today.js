@@ -3,9 +3,12 @@
 import * as db from '../db.js';
 import * as push from '../push.js';
 import { dayProgress, streak, todayList } from '../habits.js';
-import { SNOOZE_MIN } from '../reminder.js';
 import {
-  html, raw, setTop, toast, buzz, refresh, isIOS, isStandalone, APP_NAME,
+  game, sprite, xpProgress, STARTERS,
+} from '../pokemon.js';
+import { addDays, SNOOZE_MIN } from '../reminder.js';
+import {
+  html, raw, setTop, toast, buzz, refresh, isIOS, isStandalone, openSheet, closeSheet, node, APP_NAME,
 } from '../ui.js';
 
 export const GEAR = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.5-2-3.4-2.3 1a7.7 7.7 0 0 0-2.6-1.5L14.2 2.6h-4l-.3 2.5a7.7 7.7 0 0 0-2.6 1.5l-2.3-1-2 3.4 2 1.5a7.6 7.6 0 0 0 0 3l-2 1.5 2 3.4 2.3-1a7.7 7.7 0 0 0 2.6 1.5l.3 2.5h4l.3-2.5a7.7 7.7 0 0 0 2.6-1.5l2.3 1 2-3.4z"/></svg>';
@@ -26,8 +29,12 @@ function subline(item, checks, today) {
   return n ? plural(n, 'dia seguido', 'dias seguidos') : 'Comece hoje';
 }
 
+// Marcar um habito e um golpe no selvagem: a proxima pintura anima.
+let attackPending = false;
+
 async function toggle(habitId, done) {
   buzz();
+  attackPending = done;
   await db.setCheck(habitId, db.dayOf(), done);
   refresh();
   // Segura (ou devolve) o lembrete no Worker. Offline nao impede marcar.
@@ -121,6 +128,104 @@ export function habitRow(item, sub) {
     </li>`;
 }
 
+const BALL = '<svg class="ball" viewBox="0 0 40 40" aria-hidden="true"><path d="M3 20a17 17 0 0 1 34 0z" fill="#e5603f"/><path d="M3 20a17 17 0 0 0 34 0z" fill="#fff"/><circle cx="20" cy="20" r="17" fill="none" stroke="#1b2230" stroke-width="3"/><path d="M3 20h34" stroke="#1b2230" stroke-width="3"/><circle cx="20" cy="20" r="5.5" fill="#fff" stroke="#1b2230" stroke-width="3"/></svg>';
+const pct = (x) => `${Math.round(x * 100)}%`;
+const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
+
+function starterPicker(dex) {
+  return html`
+    <section class="sec">
+      <h2 class="section-title">Escolha seu inicial</h2>
+      <p class="hint">Ele começa no nível 5. Cada hábito feito dá XP ao time; dia abaixo da meta faz todo mundo perder um nível.</p>
+      <div class="starters">
+        ${raw(STARTERS.map((id) => html`
+          <button class="starter" type="button" data-starter="${id}">
+            <img class="sprite" src="${sprite(id)}" alt="" loading="lazy">
+            <span>${dex.byId.get(id).name}</span>
+          </button>`).join(''))}
+      </div>
+    </section>`;
+}
+
+function arena(dex, state, attack) {
+  const { wild } = state;
+  const me = state.party[0];
+  const foe = dex.byId.get(wild.species);
+  const mine = dex.byId.get(me.species);
+  return html`
+    <section class="arena${attack ? ' is-attack' : ''}${wild.caught ? ' is-caught' : ''}" aria-label="Selvagem de hoje">
+      <div class="hud hud--foe">
+        <div class="hud__row"><strong>${foe.name}</strong><span class="data">Nv ${wild.level}</span></div>
+        <div class="hp"><div class="hp__fill${wild.hp < 0.25 ? ' is-low' : ''}" style="width: ${wild.hp * 100}%"></div></div>
+        <span class="hud__sub">${wild.caught ? 'Capturado hoje' : 'Selvagem'}</span>
+      </div>
+      <div class="arena__foe">
+        <img class="sprite" src="${sprite(wild.species)}" alt="${foe.name} selvagem">
+        ${raw(BALL)}
+      </div>
+      <div class="arena__me">
+        <img class="sprite sprite--back" src="${sprite(me.species, 'back')}" alt="Seu ${mine.name}">
+      </div>
+      <div class="hud hud--me">
+        <div class="hud__row"><strong>${mine.name}</strong><span class="data">Nv ${me.level}</span></div>
+        <div class="xp"><div class="xp__fill" style="width: ${xpProgress(dex, me) * 100}%"></div></div>
+      </div>
+    </section>`;
+}
+
+function capturePanel(dex, state, progress) {
+  const { wild, balls } = state;
+  const goal = db.settings().goal;
+  const name = dex.byId.get(wild.species).name;
+  if (wild.caught) return html`<p class="status">Você capturou <strong>${name}</strong> hoje.</p>`;
+  if (wild.canThrow) {
+    return html`
+      <button class="btn btn--primary btn--block" type="button" data-throw>
+        Jogar Pokébola · ${pct(wild.chance)} de chance
+      </button>
+      <p class="hint">Restam ${balls} Pokébola${balls === 1 ? '' : 's'}.</p>`;
+  }
+  if (balls === 0) return html`<p class="status">Sem Pokébolas: cada dia na meta dá uma.</p>`;
+  return html`<p class="status">Bata a meta de <strong>${pct(goal)}</strong> para jogar Pokébola em ${name}
+    (chance agora ${pct(wild.chance)}, ${balls} Pokébola${balls === 1 ? '' : 's'}). Hoje: ${pct(progress ?? 0)}.</p>`;
+}
+
+function yesterdayLine(state, today) {
+  const last = state.lastDay;
+  if (!last || last.day !== addDays(today, -1)) return '';
+  return last.met
+    ? html`<p class="banner banner--good">Ontem você bateu a meta (${pct(last.progress)}): +1 Pokébola.</p>`
+    : html`<p class="banner banner--bad">Ontem ficou em ${pct(last.progress)}, abaixo da meta: o time perdeu 1 nível.</p>`;
+}
+
+function chooseStarter(dex, id, today) {
+  const p = dex.byId.get(id);
+  const body = openSheet(`Começar com ${p.name}?`, node(html`
+    <div class="stack">
+      <div class="starter-pick"><img class="sprite" src="${sprite(id)}" alt=""></div>
+      <button class="btn btn--primary btn--block btn--lg" type="button" data-confirm>Escolher ${p.name}</button>
+    </div>`));
+  body.querySelector('[data-confirm]').onclick = async () => {
+    await db.addEvent({ type: 'start', day: today, species: id });
+    closeSheet();
+    toast(`${p.name} entrou no time!`);
+    refresh();
+  };
+}
+
+async function throwBall(view, dex, state, today) {
+  const { wild } = state;
+  const caught = Math.random() < wild.chance;
+  // O resultado e gravado antes da animacao: sair no meio nao da outra chance.
+  await db.addEvent({ type: 'catch', day: today, species: wild.species, level: wild.level, caught });
+  buzz(30);
+  view.querySelector('.arena').classList.add('is-throwing', caught ? 'will-catch' : 'will-escape');
+  await sleep(2200);
+  const name = dex.byId.get(wild.species).name;
+  toast(caught ? `Pegou! ${name} entrou no time.` : `${name} escapou da Pokébola!`, 3200);
+  refresh();
+}
+
 export async function render(view) {
   setTop({
     title: APP_NAME,
@@ -130,11 +235,31 @@ export async function render(view) {
   });
 
   const today = db.dayOf();
-  const [habits, checks] = await Promise.all([db.habits(), db.allChecks()]);
+  // Sem os dados do jogo (primeira abertura offline), o Hoje ainda funciona.
+  const g = await game().catch((err) => { console.error(err); return null; });
+  const [habits, checks] = g ? [g.habits, g.checks] : await Promise.all([db.habits(), db.allChecks()]);
   const list = todayList(habits, checks, today);
+  const progress = dayProgress(list);
+  const attack = attackPending;
+  attackPending = false;
+
+  if (g && !g.state.started) {
+    view.innerHTML = starterPicker(g.dex);
+    view.onclick = (e) => {
+      const btn = e.target.closest('[data-starter]');
+      if (btn) chooseStarter(g.dex, Number(btn.dataset.starter), today);
+    };
+    return;
+  }
+
+  const play = g ? html`
+    ${raw(yesterdayLine(g.state, today))}
+    ${raw(arena(g.dex, g.state, attack))}
+    ${raw(capturePanel(g.dex, g.state, progress))}` : '';
 
   if (!habits.some((h) => !h.archived)) {
     view.innerHTML = html`
+      ${raw(play)}
       <section class="hero">
         <p class="hero__left">Nenhum hábito ainda.</p>
       </section>
@@ -142,10 +267,10 @@ export async function render(view) {
     return;
   }
 
-  const progress = dayProgress(list);
   view.innerHTML = html`
     ${raw(reminderNotice(list))}
-    <section class="hero">
+    ${raw(play)}
+    <section class="hero hero--compact">
       <div class="hero__num">
         <span class="data hero__total">${list.filter((i) => i.done).length}</span>
         <span class="hero__goal">/ ${list.length}</span>
@@ -153,6 +278,7 @@ export async function render(view) {
       <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100"
            aria-valuenow="${Math.round((progress ?? 0) * 100)}" aria-label="Progresso de hoje">
         <div class="meter__fill" style="width: ${(progress ?? 0) * 100}%"></div>
+        <div class="meter__goal" style="left: ${db.settings().goal * 100}%"></div>
       </div>
       <p class="hero__left">${list.length ? heroLine(list) : 'Nenhum hábito pra hoje'}</p>
     </section>
@@ -167,6 +293,12 @@ export async function render(view) {
   view.onclick = (e) => {
     const btn = e.target.closest('[data-toggle]');
     if (btn) { toggle(Number(btn.dataset.toggle), btn.getAttribute('aria-pressed') !== 'true'); return; }
+    const throwBtn = e.target.closest('[data-throw]');
+    if (throwBtn) {
+      throwBtn.disabled = true;
+      throwBall(view, g.dex, g.state, today);
+      return;
+    }
     if (e.target.closest('[data-snooze]')) { undoReminder(true); return; }
     if (e.target.closest('[data-undo]')) undoReminder(false);
   };

@@ -496,3 +496,257 @@ button.cell { cursor: pointer; }
   transform: translateX(-50%);
   box-shadow: var(--shadow);
 }
+
+/* ==========================================================================
+   Jogo (tema Pokemon): abas, arena, time, Pokedex e ginasios.
+   ========================================================================== */
+
+.view { padding-bottom: calc(var(--safe-bottom) + 96px); }
+
+.tabs {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--safe-bottom) + 12px);
+  z-index: 30;
+  display: flex;
+  gap: 4px;
+  width: min(420px, calc(100% - 24px));
+  padding: 5px;
+  border-radius: 999px;
+  background: var(--text);
+  transform: translateX(-50%);
+  box-shadow: var(--shadow);
+}
+.tabs a {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  border-radius: 999px;
+  color: var(--bg);
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+.tabs a[aria-current="page"] { background: var(--bg); color: var(--text); }
+
+.sprite { image-rendering: pixelated; }
+.sprite--sm { width: 40px; height: 40px; object-fit: contain; }
+
+.banner { padding: 10px 14px; border-radius: var(--radius-sm); font-size: var(--fs-sm); font-weight: 600; }
+.banner--good { background: var(--accent-soft); color: var(--text); }
+.banner--bad { background: color-mix(in srgb, var(--danger) 16%, var(--surface)); color: var(--text); }
+
+/* ---------- Arena ---------- */
+
+.arena {
+  position: relative;
+  height: 250px;
+  border-radius: var(--radius);
+  background: linear-gradient(#dce7ef 0 64%, #c9dbb2 64%);
+  overflow: hidden;
+}
+@media (prefers-color-scheme: dark) {
+  .arena { background: linear-gradient(#253041 0 64%, #2c3b2a 64%); }
+}
+.arena__foe, .arena__me {
+  position: absolute;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.arena__foe { right: 18px; top: 34px; width: 150px; height: 110px; }
+.arena__me { left: 12px; bottom: 6px; width: 170px; height: 130px; }
+.arena__foe .sprite { zoom: 1.6; }
+.arena__me .sprite { zoom: 2; }
+.arena .ball {
+  position: absolute;
+  bottom: 6px;
+  width: 34px;
+  height: 34px;
+  opacity: 0;
+}
+
+.hud {
+  position: absolute;
+  z-index: 2;
+  width: 158px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.hud--foe { left: 12px; top: 12px; }
+.hud--me { right: 12px; bottom: 14px; }
+.hud__row { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; font-size: var(--fs-sm); }
+.hud__row strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud__sub { display: block; margin-top: 3px; font-size: var(--fs-xs); color: var(--muted); }
+.hp, .xp { overflow: hidden; border-radius: 99px; background: var(--surface-2); }
+.hp { height: 8px; margin-top: 5px; }
+.xp { height: 5px; margin-top: 5px; }
+.hp__fill { height: 100%; border-radius: 99px; background: var(--accent); transition: width .6s ease; }
+.hp__fill.is-low { background: var(--danger); }
+.xp__fill { height: 100%; border-radius: 99px; background: #4c7bd9; transition: width .6s ease; }
+
+/* Marcar habito = golpe: o seu avanca, o selvagem pisca. */
+.arena.is-attack .arena__me { animation: lunge-me .7s ease; }
+.arena.is-attack .arena__foe { animation: hit .7s ease .2s; }
+.is-lunge.arena__me { animation: lunge-me .6s ease; }
+.is-lunge.arena__foe { animation: lunge-foe .6s ease; }
+.is-hit { animation: hit .6s ease .15s; }
+.is-faint { opacity: 0; transform: translateY(24px); transition: opacity .5s, transform .5s; }
+@keyframes lunge-me { 40% { transform: translate(38px, -22px); } }
+@keyframes lunge-foe { 40% { transform: translate(-30px, 18px); } }
+@keyframes hit {
+  0%, 100% { filter: none; transform: none; }
+  20%, 60% { filter: brightness(2.4); transform: translateX(6px); }
+  40%, 80% { filter: none; transform: translateX(-5px); }
+}
+
+/* Pokebola: entra no lugar do selvagem, balanca e o solta ou fecha. */
+.arena.is-caught .arena__foe .sprite { opacity: .35; filter: grayscale(1); }
+.arena.is-caught .arena__foe .ball { opacity: 1; }
+.arena.is-throwing .arena__foe .sprite { animation: absorb 2.2s forwards; }
+.arena.is-throwing .ball { animation: shake 2.2s forwards; }
+.arena.is-throwing.will-escape .arena__foe .sprite { animation: absorb-out 2.2s forwards; }
+.arena.is-throwing.will-escape .ball { animation: shake-out 2.2s forwards; }
+@keyframes absorb { 0% { opacity: 1; } 15%, 100% { opacity: 0; transform: scale(.2); } }
+@keyframes absorb-out { 0% { opacity: 1; } 15%, 80% { opacity: 0; transform: scale(.2); } 100% { opacity: 1; transform: none; } }
+@keyframes shake {
+  0% { opacity: 0; transform: translateY(-80px); }
+  15% { opacity: 1; transform: none; }
+  30%, 50%, 70% { transform: rotate(-18deg); }
+  40%, 60%, 80% { transform: rotate(18deg); }
+  90%, 100% { opacity: 1; transform: none; }
+}
+@keyframes shake-out {
+  0% { opacity: 0; transform: translateY(-80px); }
+  15% { opacity: 1; transform: none; }
+  30%, 50% { transform: rotate(-18deg); }
+  40%, 60% { transform: rotate(18deg); }
+  75% { opacity: 1; transform: none; }
+  80%, 100% { opacity: 0; transform: scale(1.4); }
+}
+
+.hero--compact { padding-top: 4px; }
+.meter { position: relative; }
+.meter__goal { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--text); opacity: .5; }
+
+/* ---------- Inicial ---------- */
+
+.starters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+.starter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  min-height: 110px;
+  padding: 8px 4px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.starter:active { transform: translateY(2px); }
+.starter-pick { display: flex; justify-content: center; }
+.starter-pick .sprite { zoom: 2.5; }
+
+/* ---------- Time ---------- */
+
+.mons { margin: 0; padding: 0; list-style: none; }
+.mon { display: flex; gap: 12px; align-items: center; padding: 10px 14px 10px 10px; }
+.mon + .mon { border-top: 1px solid var(--border); }
+.mon__pic {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 76px;
+  height: 76px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+.mon__body { flex: 1; min-width: 0; }
+.mon__row { display: flex; justify-content: space-between; align-items: baseline; }
+.mon__types { display: flex; gap: 4px; margin-top: 3px; }
+.mon__sub { display: block; margin-top: 4px; font-size: var(--fs-xs); color: var(--muted); }
+
+.type {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 99px;
+  background: var(--type, #6b7280);
+  color: #fff;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.type--normal { --type: #7a7a5c; } .type--fire { --type: #c2410c; } .type--water { --type: #2563eb; }
+.type--grass { --type: #3f7d20; } .type--electric { --type: #a16207; } .type--ice { --type: #0e7490; }
+.type--fighting { --type: #a3201b; } .type--poison { --type: #7e22ce; } .type--ground { --type: #92602a; }
+.type--flying { --type: #5b5fc7; } .type--psychic { --type: #be185d; } .type--bug { --type: #5f7a12; }
+.type--rock { --type: #78661e; } .type--ghost { --type: #5b3f8c; } .type--dragon { --type: #4c1d95; }
+.type--dark { --type: #44403c; } .type--steel { --type: #57606f; } .type--fairy { --type: #b0457c; }
+
+/* ---------- Pokedex ---------- */
+
+.dex { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 0; list-style: none; }
+.dex__cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 96px;
+  padding: 4px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface);
+}
+.dex__cell .sprite { max-width: 100%; max-height: 56px; object-fit: contain; }
+.dex__cell:not(.is-caught) .sprite { filter: grayscale(1); opacity: .6; }
+.dex__cell.is-caught { box-shadow: inset 0 0 0 2px var(--accent); }
+.dex__num { align-self: flex-start; font-size: var(--fs-xs); color: var(--muted); }
+.dex__name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-xs); font-weight: 600; }
+.dex__q { margin: auto; color: var(--muted); font-weight: 800; }
+.dex__cell.is-unknown { background: var(--surface-2); }
+
+/* ---------- Ginasios ---------- */
+
+.challenge h2 { font-size: 1.5rem; }
+.lineup { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.lineup li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  width: 72px;
+  height: 92px;
+  padding: 4px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface-2);
+  font-size: var(--fs-xs);
+}
+.lineup .sprite { max-width: 100%; max-height: 64px; object-fit: contain; }
+.ladder { margin: 0; padding: 0; list-style: none; }
+.ladder__row { display: flex; align-items: center; gap: 10px; padding: 8px 12px; }
+.ladder__row + .ladder__row { border-top: 1px solid var(--border); }
+.ladder__row .grow { display: flex; flex-direction: column; }
+.ladder__row.is-locked { opacity: .55; }
+.ladder__row.is-current { background: var(--accent-soft); }
+.ladder__mark { width: 18px; text-align: center; font-weight: 800; color: var(--accent); }
+
+.arena--battle .hud--me { bottom: 12px; }
+.battle__log { min-height: 64px; font-weight: 600; }
+.dots { display: inline-flex; gap: 4px; }
+.dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+.dots i.is-out { background: var(--border); }
+
+.toast { bottom: calc(var(--safe-bottom) + 84px); }

@@ -155,12 +155,14 @@ export function play(input, dex) {
   const hp = progress === null ? 1 : 1 - progress;
   const h = Math.max(1, Math.round(hp * 100));
   const odds = Math.floor(((300 - 2 * h) * species.capture) / 300);
+  const catchToday = input.events.find((e) => e.type === 'catch' && e.day === input.today && e.caught);
   const wild = {
     species: species.id,
-    level: Math.max(2, avgLevel() - 2),
+    // Depois de pego, fica no nivel da captura (a media do time muda com ele).
+    level: catchToday?.level ?? Math.max(2, avgLevel() - 2),
     hp,
     chance: Math.min(1, odds / 255),
-    caught: input.events.some((e) => e.type === 'catch' && e.day === input.today && e.caught),
+    caught: Boolean(catchToday),
   };
   wild.canThrow = !wild.caught && progress !== null && progress >= input.goal && balls > 0;
 
