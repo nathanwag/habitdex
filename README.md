@@ -40,29 +40,6 @@
       <br><sub><b>Liga</b></sub>
     </td>
   </tr>
-  <tr>
-    <td align="center">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/pokedex-dark.png">
-        <img src="docs/screenshots/pokedex-light.png" width="200" alt="Pokédex: 11 capturados, 37 vistos e a grade da Geração 1">
-      </picture>
-      <br><sub><b>Pokédex</b></sub>
-    </td>
-    <td align="center">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/ficha-dark.png">
-        <img src="docs/screenshots/ficha-light.png" width="200" alt="Ficha do Charmeleon no nível 35: status e golpes">
-      </picture>
-      <br><sub><b>Ficha do pokémon</b></sub>
-    </td>
-    <td align="center">
-      <picture>
-        <source media="(prefers-color-scheme: dark)" srcset="docs/screenshots/habito-dark.png">
-        <img src="docs/screenshots/habito-light.png" width="200" alt="Hábito Beber 2 L de água: 17 dias seguidos, recorde de 22 e o calendário de setembro">
-      </picture>
-      <br><sub><b>Hábito</b></sub>
-    </td>
-  </tr>
 </table>
 
 > **Aviso:** projeto de fã, sem fins comerciais e sem vínculo com a Nintendo.
