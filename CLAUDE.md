@@ -55,7 +55,8 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   Nomes em inglês: a PokeAPI não tem pt-BR.
 - **Evoluções** valem só partindo da forma padrão. Dez espécies (Obstagoon,
   Perrserker, Cursola, Sirfetch'd, Mr. Rime, Runerigus, Basculegion, Sneasler,
-  Overqwil, Clodsire) só evoluem de forma regional e ficam sem caminho.
+  Overqwil, Clodsire) só evoluem de forma regional; como a forma anterior é
+  de outra geração, aparecem como selvagens na região delas.
 - **`www/sprites/<id>/{front,back}.gif`** são os animados 3D do Pokémon
   Showdown (espelho no repo de sprites da PokeAPI): um loop parado, sem golpe
   nem dano (isso é CSS). `www/data/sprites.json` (`ids`) lista quem tem os
@@ -91,8 +92,9 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   geração da região. Assim os níveis
   originais de cada liga continuam valendo.
 - **O selvagem do dia sai de um sorteio pela data** (`seeded`): o mesmo em
-  qualquer recálculo. Forma básica da geração da região, lendários e míticos inclusive,
-  com sprite e **nunca quem já foi capturado** (o inicial e as evoluções
+  qualquer recálculo. A primeira forma de cada família na geração da região
+  (sem forma anterior ou com ela em outra geração: Pikachu em Kanto, Crobat
+  em Johto), lendários e míticos inclusive, com sprite e **nunca quem já foi capturado** (o inicial e as evoluções
   inclusive; o que escapou volta). O pego hoje continua sendo o selvagem de
   hoje (`caughtToday`). Com todos pegos, `wild` é `null` e o Hoje não mostra
   o card. A chance é a fórmula da Gen 3/4.

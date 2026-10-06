@@ -363,3 +363,19 @@ test('a Pedra evolui qualquer pokemon que evolui por pedra, troca ou amizade, pa
   assert.deepEqual([withEevee([use(5)], 4).party[0].species, withEevee([use(5)], 4).stones], [4, 1]);
   assert.equal(withEevee([use(16)]).party[0].species, 133);
 });
+
+test('o selvagem pode ser a primeira forma da familia que existe na geracao, mesmo que ela evolua de outra geracao', () => {
+  const babies = {
+    ...dex,
+    pokemon: [...dex.pokemon,
+      species(25, 'Pikachu', { evolvesFrom: 172 }), species(26, 'Raichu', { evolvesFrom: 25 }),
+      species(172, 'Pichu', { gen: 2 })],
+    sprites: [25, 26, 172],
+  };
+  const seen = new Set();
+  for (let i = 1; i <= 28; i++) {
+    seen.add(play(started('2026-10-01', { today: `2026-10-${String(i).padStart(2, '0')}` }), babies).wild.species);
+  }
+  // Em Kanto, o Pikachu (o Pichu e da geracao 2); o Raichu nao, porque vem do Pikachu.
+  assert.deepEqual([...seen], [25]);
+});
