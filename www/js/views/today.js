@@ -4,7 +4,7 @@ import * as db from '../db.js';
 import * as push from '../push.js';
 import { dayProgress, streak, todayList } from '../habits.js';
 import {
-  game, sprite, toNextLevel, startersOf, ball, emptyBall, candy, badgesOf,
+  game, sprite, toNextLevel, startersOf, ball, emptyBall,
 } from '../pokemon.js';
 import { addDays, SNOOZE_MIN } from '../reminder.js';
 import {
@@ -95,15 +95,15 @@ function reminderNotice(list) {
 
 async function reminderLine() {
   if (isIOS() && !isStandalone()) {
-    return html`<a class="status" href="#/ajustes">Para receber lembretes, adicione o ${APP_NAME} à Tela de Início.</a>`;
+    return html`<a href="#/ajustes">Para receber lembretes, adicione o ${APP_NAME} à Tela de Início</a>`;
   }
   if (!(await push.currentSubscription().catch(() => null))) {
-    return html`<a class="status" href="#/ajustes">Lembretes desligados · <strong>ativar</strong></a>`;
+    return html`<a href="#/ajustes">Lembretes desligados · <strong>ativar</strong></a>`;
   }
   const next = await push.upcoming();
   return next
-    ? html`<p class="status">Próximo lembrete às <strong>${next.at}</strong>: ${next.names.join(', ')}</p>`
-    : html`<p class="status">Sem mais lembretes hoje.</p>`;
+    ? html`<span>Próximo lembrete às <strong>${next.at}</strong>: ${next.names.join(', ')}</span>`
+    : html`<span>Sem mais lembretes hoje</span>`;
 }
 
 const pct = (x) => `${Math.round(x * 100)}%`;
@@ -151,17 +151,11 @@ function starterPicker(dex, state) {
     </div>`;
 }
 
-function trainerBar(dex, state) {
-  const { region, won, total } = badgesOf(dex, state.challenge);
-  return html`
-    <div class="trainer">
-      <span class="trainer__where">
-        <strong>${region ? region.name : 'Liga vencida'}</strong>
-        ${raw(Array.from({ length: total }, (_, i) => `<span class="badge-hex${i < won ? ' is-won' : ''}"></span>`).join(''))}
-      </span>
-      <span class="pill" aria-label="${state.balls} Pokébolas">${raw(ball(18))}${state.balls}</span>
-      <span class="pill pill--candy" aria-label="${state.candies} Doces Raros">${raw(candy(20))}${state.candies}</span>
-    </div>`;
+// O "ontem" so aparece quando custou algo: dia abaixo da meta derruba o time.
+function yesterdayLine(state, today) {
+  const last = state.lastDay;
+  if (!last || last.met || last.day !== addDays(today, -1)) return '';
+  return html`<p class="banner banner--bad">Ontem ficou em ${pct(last.progress)}, abaixo da meta: o time perdeu 1 nível.</p>`;
 }
 
 function goalCard(dex, state, list, progress, attack) {
@@ -172,8 +166,6 @@ function goalCard(dex, state, list, progress, attack) {
   const counted = list.filter((i) => i.done || i.mustDo).length;
   const met = progress !== null && progress >= goal;
   const missing = Math.max(0, Math.ceil(goal * counted - 1e-9) - done);
-  const C = 2 * Math.PI * 66;
-  const filled = toNextLevel(progress, goal) * C;
   let title;
   let sub;
   if (!list.length) {
@@ -181,60 +173,47 @@ function goalCard(dex, state, list, progress, attack) {
     sub = 'Sem hábitos agendados hoje.';
   } else if (met) {
     title = 'Meta batida!';
-    sub = html`${name} subiu para o <strong>Nv ${me.level}</strong> e você ganhou 1 doce.`;
+    sub = `${name} subiu pro Nv ${me.level} · +1 doce`;
   } else {
-    title = `Falta${missing === 1 ? '' : 'm'} ${missing} hábito${missing === 1 ? '' : 's'}`;
-    sub = html`Batendo a meta, ${name} sobe pro <strong>Nv ${me.level + 1}</strong> e você ganha 1 doce.`;
+    title = html`${done} de ${list.length} · falta <b>${missing}</b>`;
+    sub = `Na meta: ${name} Nv ${me.level + 1}, +1 doce e um selvagem aparece`;
   }
   return html`
-    <section class="card goal-card${attack ? ' is-attack' : ''}" aria-label="Meta de hoje">
-      <div class="ring${met ? ' is-met' : ''}">
-        <svg viewBox="0 0 150 150" aria-hidden="true">
-          <circle class="ring__track" cx="75" cy="75" r="66" fill="none" stroke-width="14"/>
-          <circle class="ring__fill" cx="75" cy="75" r="66" fill="none" stroke-width="14" stroke-linecap="round"
-            stroke-dasharray="${filled} ${C}" transform="rotate(-90 75 75)"/>
-        </svg>
-        <span class="ring__pic"><img class="sprite" src="${sprite(me.species)}" alt="${name}"></span>
-        <span class="ring__lv">Nv ${me.level}</span>
-      </div>
-      <div class="goal-card__text">
-        <span class="goal-card__num">${done}<span>/${list.length}</span></span>
-        <span class="goal-card__title">${title}</span>
-        <span class="goal-card__sub">${raw(String(sub))}</span>
-      </div>
+    <section class="goal${attack ? ' is-attack' : ''}${met ? ' is-met' : ''}" aria-label="Meta de hoje">
+      <a class="goal__pic" href="#/pokemon?uid=${me.uid}" aria-label="${name}, Nv ${me.level}"><img class="sprite" src="${sprite(me.species)}" alt=""></a>
+      <span class="grow">
+        <span class="goal__title">${raw(String(title))}</span>
+        <span class="goal__bar"><span style="width: ${pct(toNextLevel(progress, goal))}"></span></span>
+        <span class="goal__sub">${sub}</span>
+      </span>
     </section>`;
 }
 
-function wildCard(dex, state, progress, attack) {
+// O selvagem do dia so aparece depois da meta batida, para jogar a Poke Bola.
+function wildCard(dex, state, progress) {
   const { wild, balls } = state;
-  const name = dex.byId.get(wild.species).name;
   const goal = db.settings().goal;
+  if (!wild.caught && (progress === null || progress < goal)) return '';
+  const name = dex.byId.get(wild.species).name;
   let action;
-  if (wild.caught) action = html`<span class="wild__hint">Capturado! Entrou no nível 1.</span>`;
-  else if (wild.canThrow) action = html`<button class="btn btn--primary btn--block" type="button" data-throw>Jogar Poké Bola · ${pct(wild.chance)}</button>`;
-  else if (balls === 0) action = html`<span class="wild__hint">Sem Poké Bolas: cada dia na meta dá uma.</span>`;
-  else action = html`<span class="wild__hint">Cada hábito tira vida. Bata a meta (${pct(goal)}) para jogar Poké Bola · hoje ${pct(progress ?? 0)}.</span>`;
+  if (wild.caught) action = html`<span class="wild__hint">Entrou no time no nível 1.</span>`;
+  else if (wild.canThrow) {
+    action = html`
+      <button class="btn btn--primary btn--block" type="button" data-throw>Jogar Poké Bola · ${pct(wild.chance)}</button>
+      <span class="wild__hint">${plural(balls, 'Poké Bola', 'Poké Bolas')}</span>`;
+  } else action = html`<span class="wild__hint">Sem Poké Bolas: cada dia na meta dá uma.</span>`;
   return html`
-    <section class="card wild${attack ? ' is-attack' : ''}${wild.caught ? ' is-caught' : ''}" aria-label="Encontro do dia">
+    <section class="card wild${wild.caught ? ' is-caught' : ''}" aria-label="Encontro do dia">
       <div class="wild__grass">
         <img class="sprite" src="${sprite(wild.species)}" alt="${name} selvagem">
         ${raw(ball(30))}
       </div>
       <div class="wild__body">
-        <span class="wild__kicker">ENCONTRO DO DIA</span>
-        <span class="wild__name">${name} selvagem</span>
-        <div class="hp"><div class="hp__fill${wild.hp < 0.25 ? ' is-low' : ''}" style="width: ${wild.hp * 100}%"></div></div>
+        <span class="wild__kicker">${wild.caught ? 'CAPTURADO' : 'APARECEU'}</span>
+        <span class="wild__name">${name} selvagem${wild.caught ? '' : '!'}</span>
         ${raw(action)}
       </div>
     </section>`;
-}
-
-function yesterdayLine(state, today) {
-  const last = state.lastDay;
-  if (!last || last.day !== addDays(today, -1)) return '';
-  return last.met
-    ? html`<p class="banner banner--good">Ontem você bateu a meta (${pct(last.progress)}): +1 Poké Bola.</p>`
-    : html`<p class="banner banner--bad">Ontem ficou em ${pct(last.progress)}, abaixo da meta: o time perdeu 1 nível.</p>`;
 }
 
 function chooseStarter(dex, id, today) {
@@ -290,10 +269,9 @@ export async function render(view) {
   }
 
   const top = g ? html`
-    ${raw(trainerBar(g.dex, g.state))}
     ${raw(yesterdayLine(g.state, today))}
     ${raw(goalCard(g.dex, g.state, list, progress, attack))}
-    ${raw(wildCard(g.dex, g.state, progress, attack))}` : '';
+    ${raw(wildCard(g.dex, g.state, progress))}` : '';
 
   if (!habits.some((h) => !h.archived)) {
     view.innerHTML = html`
@@ -306,8 +284,7 @@ export async function render(view) {
     ${raw(reminderNotice(list))}
     ${raw(top)}
     ${list.length ? raw(html`<ul class="habs" aria-label="Hábitos de hoje">${raw(list.map((i) => habitRow(i, subline(i, checks, today))).join(''))}</ul>`) : ''}
-    ${raw(await reminderLine())}
-    <a class="btn btn--ghost btn--block" href="#/habito/novo">+ Novo hábito</a>
+    <p class="today-foot">${raw(await reminderLine())}<a class="today-foot__new" href="#/habito/novo">+ Novo hábito</a></p>
   `;
 
   view.onclick = (e) => {

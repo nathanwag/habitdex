@@ -175,7 +175,8 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 ## Telas
 
 - `#/` **Hoje** (`views/today.js`): progresso do dia, hábitos que valem hoje
-  (o círculo marca, o nome abre), a linha do próximo lembrete e a faixa de
+  (o círculo marca, o nome abre), uma linha no fim com o próximo lembrete e o
+  "+ Novo hábito", e a faixa de
   desfazer/adiar depois do toque na notificação.
 - `#/habito?id=` (`views/habit.js`): sequência, taxa e a grade de semanas a
   partir da criação (máx. 12). Tocar num dia passado marca ou desmarca.
@@ -186,9 +187,12 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 - `#/ajustes` (`views/settings.js`): liga/desliga dos lembretes, teste,
   `/ajustes/virada` e `/ajustes/servidor` (token).
 - `#/feito?habito=&lembrete=`: o toque na notificação (marca e cai no Hoje).
-- O **Hoje** também tem a arena (selvagem do dia contra o primeiro do time;
-  marcar hábito anima o golpe), a Pokébola quando bate a meta, o resumo de
-  ontem e, antes do inicial, a escolha entre os 3 da região.
+- O **Hoje** começa por um card curto da meta (o principal, "2 de 5 · falta 2"
+  e a barra; marcar hábito faz ele pular). O selvagem do dia só aparece depois
+  da meta batida, para jogar a Poké Bola. O "ontem" só aparece quando o time
+  caiu de nível. Antes do inicial, a escolha entre os 3 da região. Insígnias e
+  doces não ficam no Hoje (estão na Liga e no Time); as Pokébolas só aparecem
+  no card do selvagem.
 - `#/pokemon?uid=` (`renderMon` em `views/team.js`): a ficha de quem está no
   time ou na caixa (status no nível, golpes, próximos golpes, evolução, tipos
   contra ele e as ações). Os números saem de `summary` do `battle.js`, os mesmos

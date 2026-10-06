@@ -67,11 +67,3 @@ export const ball = (size = 36) => `<svg class="ball-svg" width="${size}" height
 export const emptyBall = (size = 36) => `<svg class="ball-svg" width="${size}" height="${size}" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="var(--bg)" stroke="var(--ball-empty)" stroke-width="3"/><path d="M3 20h34" stroke="var(--ball-empty)" stroke-width="3"/><circle cx="20" cy="20" r="5.5" fill="var(--surface)" stroke="var(--ball-empty)" stroke-width="3"/></svg>`;
 
 export const candy = (size = 20) => `<svg class="candy-svg" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 8l6 4-6 4z" fill="#8a5cf6" stroke="none"/><path d="M23 8l-6 4 6 4z" fill="#8a5cf6" stroke="none"/><circle cx="12" cy="12" r="6" fill="#c4a8ff" stroke="#4b2a99" stroke-width="1.5"/></svg>`;
-
-/** Insignias ja ganhas na regiao do desafio atual (ginasios vencidos). */
-export function badgesOf(dex, challenge) {
-  if (!challenge) return { region: null, won: 0, total: 0 };
-  const region = dex.regions.find((r) => r.id === challenge.region);
-  const won = challenge.kind === 'gym' ? challenge.index : region.gyms.length;
-  return { region, won, total: region.gyms.length };
-}

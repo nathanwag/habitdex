@@ -582,11 +582,8 @@ button.cell { cursor: pointer; }
 .tabs .tabs__ball svg { width: 54px; height: 54px; }
 .tabs .tabs__ball[aria-current="page"] { box-shadow: 0 0 0 4px var(--accent-soft), 0 4px 12px rgba(31, 42, 58, .2); }
 
-/* ---------- Cabecalho do Hoje ---------- */
+/* ---------- Insignias ---------- */
 
-.trainer { display: flex; align-items: center; gap: 10px; }
-.trainer__where { flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; font-size: var(--fs-sm); color: var(--muted); }
-.trainer__where strong { color: var(--text); font-family: var(--display); font-weight: 600; font-size: 1rem; }
 .badge-hex { width: 13px; height: 13px; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); background: var(--surface-2); }
 .badge-hex.is-won { background: var(--yellow); }
 .pill {
@@ -612,47 +609,27 @@ button.cell { cursor: pointer; }
   .banner--bad { color: #ffc9c3; }
 }
 
-/* ---------- Meta do dia (anel) ---------- */
+/* ---------- Meta do dia ---------- */
 
-.goal-card { display: flex; align-items: center; gap: 16px; padding: 16px; }
-.ring { position: relative; flex: none; width: 150px; height: 150px; }
-.ring svg { position: absolute; inset: 0; width: 150px; height: 150px; }
-.ring__track { stroke: var(--surface-2); }
-.ring__fill { stroke: var(--ball); transition: stroke-dasharray .6s ease; }
-.ring.is-met .ring__fill { stroke: var(--success); }
-.ring__pic {
-  position: absolute;
-  inset: 22px;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  overflow: hidden;
-  border-radius: 50%;
-  background: #fff4e6;
-}
-@media (prefers-color-scheme: dark) { .ring__pic { background: #2b2a2a; } }
-.ring__pic .sprite { zoom: 1.25; margin-bottom: 6px; animation: bob 2.4s ease-in-out infinite; }
-.ring__lv {
-  position: absolute;
-  top: 6px;
-  right: 0;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--text);
-  color: var(--bg);
-  font-family: var(--display);
-  font-size: .9rem;
-  font-weight: 600;
-}
-.goal-card__text { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.goal-card__num { font-family: var(--display); font-weight: 700; font-size: 2.2rem; line-height: 1; }
-.goal-card__num span { font-size: 1.3rem; color: var(--muted); }
-.goal-card__title { font-family: var(--display); font-weight: 600; font-size: 1.1rem; }
-.goal-card__sub { font-size: var(--fs-sm); color: var(--muted); }
-.goal-card__sub strong { color: var(--accent); }
+.goal { display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 10px; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+.goal__pic { position: relative; flex: none; display: flex; align-items: flex-end; justify-content: center; width: 76px; height: 76px; }
+.goal__pic::before { content: ''; position: absolute; bottom: 0; left: 50%; width: 76%; height: 12px; border-radius: 50%; background: var(--surface-2); transform: translateX(-50%); }
+.goal__pic .sprite { position: relative; max-width: 100%; max-height: 76px; object-fit: contain; margin-bottom: 5px; animation: bob 2.4s ease-in-out infinite; }
+.goal > .grow { display: flex; flex-direction: column; gap: 6px; }
+.goal__title { font-family: var(--display); font-weight: 600; font-size: 1.25rem; line-height: 1.1; }
+.goal__title b { color: var(--ball); font-weight: 600; }
+.goal__bar { display: block; height: 8px; overflow: hidden; border-radius: 99px; background: var(--surface-2); }
+.goal__bar > span { display: block; height: 100%; border-radius: inherit; background: var(--ball); transition: width .6s ease; }
+.goal.is-met .goal__bar > span { background: var(--success); }
+.goal__sub { font-size: var(--fs-xs); font-weight: 800; color: var(--muted); }
 @keyframes bob { 50% { transform: translateY(-4px); } }
-.goal-card.is-attack .ring__pic .sprite { animation: hop .6s ease; }
+.goal.is-attack .goal__pic .sprite { animation: hop .6s ease; }
 @keyframes hop { 40% { transform: translateY(-16px) scale(1.06); } }
+
+.today-foot { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; margin-top: 18px; font-size: var(--fs-sm); font-weight: 700; color: var(--muted); text-align: center; }
+.today-foot a { color: inherit; text-decoration: none; }
+.today-foot strong { color: var(--accent); }
+.today-foot__new { color: var(--accent) !important; }
 
 /* ---------- Encontro do dia ---------- */
 
