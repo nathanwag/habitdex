@@ -72,6 +72,31 @@ export function streak(habit, checks, today) {
   return habit.schedule.kind === 'weekly' ? weekStreak(habit, mine, today) : dayStreak(habit, mine, today);
 }
 
+/** A maior sequencia que o habito ja teve (dias ou semanas, como `streak`). */
+export function bestStreak(habit, checks, today) {
+  const mine = checks.filter((c) => c.habitId === habit.id);
+  let best = 0;
+  let run = 0;
+  const step = (hit, current) => {
+    if (hit) best = Math.max(best, ++run);
+    else if (!current) run = 0;
+  };
+  if (habit.schedule.kind === 'weekly') {
+    const perWeek = new Map();
+    for (const c of mine) perWeek.set(weekOf(c.day), (perWeek.get(weekOf(c.day)) || 0) + 1);
+    const current = weekOf(today);
+    for (let week = weekOf(habit.createdDay); week <= current; week = addDays(week, 7)) {
+      step((perWeek.get(week) || 0) >= habit.schedule.times, week === current);
+    }
+    return best;
+  }
+  const done = new Set(mine.map((c) => c.day));
+  for (let day = habit.createdDay; day <= today; day = addDays(day, 1)) {
+    if (isScheduled(habit, day)) step(done.has(day), day === today);
+  }
+  return best;
+}
+
 function dayStreak(habit, checks, today) {
   const done = new Set(checks.map((c) => c.day));
   let count = 0;
@@ -138,6 +163,18 @@ export function habitHistory(habit, checks, today, weeks) {
   return { weeks: grid, rate: hits.length ? hits.filter(Boolean).length / hits.length : null };
 }
 
+/** Os dias do mes `month` (AAAA-MM), cada um com seu estado, e quantos
+ *  foram feitos (`done`) dos que eram devidos (`due`: feitos + faltas). */
+export function monthDays(habit, checks, today, month) {
+  const doneDays = new Set(checks.filter((c) => c.habitId === habit.id).map((c) => c.day));
+  const days = [];
+  for (let day = `${month}-01`; day.startsWith(month); day = addDays(day, 1)) {
+    days.push({ day, state: dayState(habit, doneDays, day, today) });
+  }
+  const done = days.filter((d) => d.state === 'done').length;
+  return { days, done, due: done + days.filter((d) => d.state === 'missed').length };
+}
+
 /** O que o Worker precisa saber pra decidir os lembretes de `day`. */
 export function syncState(checks, day) {
   const weekCounts = {};
@@ -148,4 +185,19 @@ export function syncState(checks, day) {
     doneToday: checks.filter((c) => c.day === day).map((c) => c.habitId),
     weekCounts,
   };
+}
+
+// Por grafema: um emoji pode ter varios code points (tom de pele, ZWJ).
+const graphemes = (text) => [...new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text)]
+  .map((s) => s.segment);
+
+/** O icone de um habito a partir do que foi digitado: o ultimo emoji, para
+ *  que digitar outro no campo troque o icone. */
+export function iconOf(text) {
+  return graphemes(text.trim()).at(-1) ?? null;
+}
+
+/** O que vai no quadradinho do habito: o icone ou a inicial do nome. */
+export function habitIcon(habit) {
+  return habit.icon || (graphemes(habit.name.trim())[0] ?? '?').toUpperCase();
 }

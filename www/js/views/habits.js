@@ -16,7 +16,7 @@ function row(habit, index, total) {
   return html`
     <li class="list__row">
       <a class="habit__body" href="#/habito?id=${habit.id}">
-        <span class="habit__name">${habit.name}</span>
+        <span class="habit__name">${habit.icon ? `${habit.icon} ` : ''}${habit.name}</span>
         <span class="habit__sub">${scheduleText(habit.schedule)}${habit.remindAt ? ` · ${habit.remindAt}` : ''}</span>
       </a>
       ${habit.archived ? raw(html`<a class="habit__chev" href="#/habito?id=${habit.id}" aria-hidden="true" tabindex="-1">${raw(CHEVRON)}</a>`)

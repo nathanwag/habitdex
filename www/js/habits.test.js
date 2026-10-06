@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  dayProgress, habitHistory, reviseHabit, streak, syncState, todayList,
+  bestStreak, dayProgress, habitHistory, habitIcon, iconOf, monthDays, reviseHabit, streak, syncState, todayList,
 } from './habits.js';
 
 const daily = (id, extra = {}) => ({ id, name: `h${id}`, schedule: { kind: 'daily' }, createdDay: '2026-09-01', order: id, ...extra });
@@ -161,4 +161,52 @@ test('editar frequencia ou arquivar registra uma versao a partir do dia; no mesm
   assert.deepEqual(reviseHabit(old, { ...old, name: 'Ler' }, '2026-09-20').versions, [
     { from: '2026-09-01', schedule: { kind: 'daily' }, archived: false },
   ]);
+});
+
+test('o icone e o ultimo emoji digitado (digitar outro troca), inteiro mesmo quando composto; vazio vira sem icone', () => {
+  assert.equal(iconOf('💧'), '💧');
+  assert.equal(iconOf('💧🏃'), '🏃');
+  assert.equal(iconOf('  🧘‍♀️ '), '🧘‍♀️');
+  assert.equal(iconOf('ok 👍🏽'), '👍🏽');
+  assert.equal(iconOf('   '), null);
+  assert.equal(iconOf(''), null);
+});
+
+test('o habito mostra o icone; sem icone, a inicial do nome', () => {
+  assert.equal(habitIcon(daily(1, { name: 'Beber água', icon: '💧' })), '💧');
+  assert.equal(habitIcon(daily(1, { name: '  ler' })), 'L');
+  assert.equal(habitIcon(daily(1, { name: '' })), '?');
+});
+
+test('o recorde e a maior sequencia ja feita, mesmo que a atual seja menor', () => {
+  const h = daily(1);
+  // 02 a 05 (4 dias), falha no 06, 07 e 08 (2 dias).
+  const checks = ['2026-09-02', '2026-09-03', '2026-09-04', '2026-09-05', '2026-09-07', '2026-09-08'].map((d) => check(1, d));
+  assert.equal(bestStreak(h, checks, '2026-09-08'), 4);
+  assert.equal(bestStreak(h, [], '2026-09-08'), 0);
+
+  // Dias fixos: seg 14, qua 16, sex 18 e seg 21 seguem, mesmo com o fim de semana no meio.
+  const gym = { ...daily(1), schedule: { kind: 'days', days: [1, 3, 5] } };
+  const gymChecks = ['2026-09-14', '2026-09-16', '2026-09-18', '2026-09-21'].map((d) => check(1, d));
+  assert.equal(bestStreak(gym, gymChecks, '2026-09-30'), 4);
+
+  // Semanal (2x): semanas de 07/09 e 14/09 na meta, a de 21/09 nao, a de 28/09 sim.
+  const run = { ...daily(1), schedule: { kind: 'weekly', times: 2 } };
+  const runChecks = ['2026-09-08', '2026-09-10', '2026-09-15', '2026-09-19', '2026-09-23', '2026-09-28', '2026-09-29']
+    .map((d) => check(1, d));
+  assert.equal(bestStreak(run, runChecks, '2026-09-30'), 2);
+});
+
+test('o mes traz cada dia com seu estado e quantos foram feitos dos que ja eram devidos', () => {
+  // Criado em 03/09; seg/qua/sex; hoje e quarta 23/09.
+  const gym = { ...daily(1, { createdDay: '2026-09-03' }), schedule: { kind: 'days', days: [1, 3, 5] } };
+  const checks = ['2026-09-04', '2026-09-07', '2026-09-14', '2026-09-16'].map((d) => check(1, d));
+  const { days, done, due } = monthDays(gym, checks, '2026-09-23', '2026-09');
+  assert.equal(days.length, 30);
+  const at = (d) => days.find((x) => x.day === `2026-09-${d}`).state;
+  assert.deepEqual([at('02'), at('04'), at('09'), at('10'), at('23'), at('24')],
+    ['before', 'done', 'missed', 'off', 'open', 'future']);
+  // Devidos ate ontem: 04, 07, 09, 11, 14, 16, 18, 21 (8); feitos: 4.
+  assert.deepEqual([done, due], [4, 8]);
+  assert.equal(monthDays(gym, checks, '2026-09-23', '2026-02').days.length, 28);
 });

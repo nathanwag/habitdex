@@ -1,7 +1,8 @@
-/* Novo hábito e editar hábito: nome, frequência e horário do lembrete. */
+/* Novo hábito e editar hábito: ícone, nome, frequência e horário do lembrete. */
 
 import * as db from '../db.js';
 import * as push from '../push.js';
+import { habitIcon, iconOf } from '../habits.js';
 import { html, raw, setTop, toast } from '../ui.js';
 
 // Segunda primeiro, como a semana dos habitos (weekOf).
@@ -16,7 +17,7 @@ const MAX_TIMES = 6;
 let draft = null;
 
 function blank() {
-  return { name: '', schedule: { kind: 'daily' }, remindAt: null };
+  return { name: '', icon: null, schedule: { kind: 'daily' }, remindAt: null };
 }
 
 function scheduleFields(schedule) {
@@ -44,16 +45,21 @@ function scheduleFields(schedule) {
 }
 
 function paint(view) {
-  const { name, schedule, remindAt } = draft;
+  const { name, icon, schedule, remindAt } = draft;
   const editing = draft.id != null;
   view.innerHTML = html`
     <form class="stack">
       <section class="sec">
         <h2 class="section-title">Hábito</h2>
         <div class="card card__pad">
-          <label class="field"><span class="field__k">Nome</span>
-            <input class="input" name="name" type="text" maxlength="60" autocomplete="off"
-              placeholder="ex.: Meditar 10 min" value="${name}"></label>
+          <div class="row">
+            <label class="field"><span class="field__k">Ícone</span>
+              <input class="icon-input" name="icon" type="text" autocomplete="off" aria-label="Ícone (um emoji)"
+                placeholder="${habitIcon({ name })}" value="${icon ?? ''}"></label>
+            <label class="field grow"><span class="field__k">Nome</span>
+              <input class="input" name="name" type="text" maxlength="60" autocomplete="off"
+                placeholder="ex.: Meditar 10 min" value="${name}"></label>
+          </div>
         </div>
       </section>
 
@@ -123,8 +129,17 @@ async function open(view, params) {
   setTop({ title: id == null ? 'Novo hábito' : 'Editar hábito', back: id == null ? '#/' : `#/habito?id=${id}` });
   paint(view);
 
+  // Sem redesenhar: o campo em foco perderia o teclado.
   view.oninput = (e) => {
-    if (e.target.name === 'name') draft.name = e.target.value;
+    if (e.target.name === 'name') {
+      draft.name = e.target.value;
+      // Sem icone, o quadradinho mostra a inicial do nome.
+      view.querySelector('[name=icon]').placeholder = habitIcon({ name: draft.name });
+    }
+    if (e.target.name === 'icon') {
+      draft.icon = iconOf(e.target.value);
+      e.target.value = draft.icon ?? '';
+    }
   };
   view.onchange = (e) => {
     if (e.target.name === 'remind') {

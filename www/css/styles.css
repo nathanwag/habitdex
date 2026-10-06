@@ -327,33 +327,48 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 /* ---------- Habito ---------- */
 
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.stat { display: flex; flex-direction: column; gap: 6px; padding: 12px; }
-.stat__v { font-size: 2rem; }
-.stat__k { font-size: var(--fs-xs); color: var(--muted); line-height: 1.25; }
+/* Cabecalho: icone pequeno na cor do habito, nome e a Poke Bola de hoje. */
+.hab-head { display: flex; align-items: center; gap: 12px; padding: 12px 8px 12px 12px; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+.hab-head__icon { flex: none; display: grid; place-items: center; width: 48px; height: 48px; border-radius: 15px; font-family: var(--display); font-weight: 700; font-size: 1.3rem; }
+.hab-head__icon.is-emoji { font-family: inherit; font-size: 1.6rem; }
+.hab-head > .grow { display: flex; flex-direction: column; gap: 2px; }
+.hab-head__name { font-family: var(--display); font-weight: 600; font-size: 1.35rem; line-height: 1.1; }
+.hab-head__sub { font-size: var(--fs-xs); font-weight: 800; color: var(--muted); }
 
-/* Grade das ultimas semanas: uma linha por semana, segunda a domingo. */
-.grid { display: grid; gap: 6px; }
-.grid__row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.grid__head span { text-align: center; font-size: .75rem; font-weight: 800; color: var(--muted); }
+.hab-nums { display: grid; grid-template-columns: repeat(4, 1fr); padding: 12px 6px; border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); text-align: center; }
+.hab-nums span { display: flex; flex-direction: column; font-size: 11px; font-weight: 800; color: var(--muted); }
+.hab-nums b { font-family: var(--display); font-weight: 600; font-size: 1.35rem; color: var(--text); }
+
+/* ---------- Calendario do mes ---------- */
+
+.month-head { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
+.month-head > .grow { display: flex; flex-direction: column; }
+.month-head__name { font-family: var(--display); font-weight: 600; font-size: 1.15rem; text-transform: capitalize; }
+.month-head__sub { font-size: var(--fs-xs); font-weight: 800; color: var(--muted); }
+.month-nav { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--surface-2); color: var(--text); font-family: var(--display); font-size: 1.3rem; text-decoration: none; }
+.month-nav.is-off { opacity: .35; pointer-events: none; }
+.month { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.month__head { text-align: center; font-size: .75rem; font-weight: 800; color: var(--muted); }
 .cell {
-  display: block;
+  display: grid;
+  place-items: center;
   aspect-ratio: 1;
-  max-height: 40px;
   padding: 0;
   border: 0;
-  border-radius: 8px;
+  border-radius: 50%;
   background: var(--surface-2);
+  color: var(--muted);
   font: inherit;
+  font-size: .85rem;
+  font-weight: 800;
 }
 button.cell { cursor: pointer; }
-.cell--done { background: var(--ball); }
-.cell--missed { background: color-mix(in srgb, var(--danger) 22%, var(--surface-2)); }
-.cell--off { background: var(--surface-2); opacity: .55; }
-.cell--open { background: transparent; outline: 2px dashed var(--accent); outline-offset: -2px; }
-.cell--before, .cell--future { background: transparent; }
-/* Semana do semanal com a meta batida ganha um fundo. */
-.grid__row.is-met { border-radius: 10px; box-shadow: 0 0 0 3px var(--accent-soft); background: var(--accent-soft); }
+.cell--done { background: var(--ball); color: #fff; }
+.cell--missed { background: color-mix(in srgb, var(--danger) 18%, var(--surface-2)); }
+.cell--off { background: transparent; opacity: .5; }
+.cell--open { background: transparent; color: var(--text); outline: 2px dashed var(--accent); outline-offset: -2px; }
+.cell--before { background: transparent; opacity: .3; }
+.cell--future { background: transparent; opacity: .35; }
 
 /* ---------- Ajustes ---------- */
 
@@ -719,6 +734,25 @@ button.cell { cursor: pointer; }
   font-weight: 700;
   font-size: 1.05rem;
 }
+.hab__tile.is-emoji { font-family: inherit; font-size: 1.35rem; }
+
+/* Icone do habito no formulario: o proprio quadradinho e o campo. 16px+
+ * no input: abaixo disso o Safari da zoom ao focar. */
+.icon-input {
+  display: block;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 1.6rem;
+  text-align: center;
+  caret-color: transparent;
+}
+.icon-input::placeholder { color: var(--muted); font-family: var(--display); font-weight: 700; font-size: 1.3rem; opacity: 1; }
+.icon-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
 .hab__body { flex: 1; min-width: 0; display: flex; flex-direction: column; color: var(--text); text-decoration: none; }
 .hab__name { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hab__sub { font-size: var(--fs-xs); color: var(--muted); }
@@ -1189,3 +1223,7 @@ a.dex__cell { color: inherit; text-decoration: none; }
 .dots i.is-out { background: var(--border); }
 
 .toast { bottom: calc(var(--safe-bottom) + 92px); }
+
+/* Some da tela, mas continua acessivel (o input de arquivo do Importar). */
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+label.set-item { cursor: pointer; }

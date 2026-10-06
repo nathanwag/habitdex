@@ -2,7 +2,9 @@
 
 import * as db from '../db.js';
 import * as push from '../push.js';
-import { dayProgress, streak, todayList } from '../habits.js';
+import {
+  dayProgress, habitIcon, streak, todayList,
+} from '../habits.js';
 import {
   game, sprite, toNextLevel, startersOf, ball, emptyBall,
 } from '../pokemon.js';
@@ -114,14 +116,14 @@ const TINTS = [
   ['#fde3ee', '#b02a63'], ['#fde4e1', '#b0342a'], ['#e3ecfc', '#2f5fb8'], ['#ece7f7', '#5c468c'],
   ['#e3f4dc', '#2f6d27'], ['#fff1cc', '#8a5a00'], ['#dff3f5', '#0e6470'], ['#efeee2', '#66663f'],
 ];
-const tint = (id) => TINTS[(id - 1) % TINTS.length];
+export const tint = (id) => TINTS[(id - 1) % TINTS.length];
 
 export function habitRow(item, sub) {
   const { habit, done } = item;
   const [bg, ink] = tint(habit.id);
   return html`
     <li class="hab${done ? ' is-done' : ''}">
-      <span class="hab__tile" style="background: ${bg}; color: ${ink}" aria-hidden="true">${habit.name.trim()[0] ?? '?'}</span>
+      <span class="hab__tile${habit.icon ? ' is-emoji' : ''}" style="background: ${bg}; color: ${ink}" aria-hidden="true">${habitIcon(habit)}</span>
       <a class="hab__body" href="#/habito?id=${habit.id}">
         <span class="hab__name">${habit.name}</span>
         <span class="hab__sub">${sub}</span>
