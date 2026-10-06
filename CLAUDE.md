@@ -186,7 +186,11 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 - O **Hoje** também tem a arena (selvagem do dia contra o primeiro do time;
   marcar hábito anima o golpe), a Pokébola quando bate a meta, o resumo de
   ontem e, antes do inicial, a escolha entre os 3 da região.
-- `#/time` (`views/team.js`: principal, caixa e Doce Raro), `#/pokedex` (`views/pokedex.js`, sprite só de
+- `#/pokemon?uid=` (`renderMon` em `views/team.js`): a ficha de quem está no
+  time ou na caixa (status no nível, golpes, próximos golpes, evolução, tipos
+  contra ele e as ações). Os números saem de `summary` do `battle.js`, os mesmos
+  da luta.
+- `#/time` (`views/team.js`: o time numa grade 3×2, o primeiro é o principal, e a caixa; tocar abre a ficha), `#/pokedex` (`views/pokedex.js`, sprite só de
   quem foi visto) e `#/ginasios` (`views/gyms.js`): as abas do jogo, na barra
   de baixo (`#tabs`, só nas telas principais).
 - `#/batalha` (`views/gyms.js`): a luta é sorteada inteira e gravada antes de
@@ -201,7 +205,7 @@ Só os módulos puros e o Worker são testados. Os seams são:
 - `habits.js`: `todayList`, `dayProgress`, `streak`, `habitHistory` e
   `syncState`
 - `game.js`: `play` (com uma Pokédex falsa pequena) e `battle.js`:
-  `createBattle`, `turn` (sorteio por parâmetro)
+  `createBattle`, `turn` (sorteio por parâmetro) e `summary` (a ficha)
 - `worker/src/api.js` (`handleApi`) e `cron.js` (`handleCron`), com KV e
   `send` falsos
 - `scripts/pokedex/build.js` (`parseCsv`, `buildPokedex`) e

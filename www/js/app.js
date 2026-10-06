@@ -24,6 +24,7 @@ const ROUTES = {
   '/ajustes/servidor': settings.renderServer,
   '/ajustes/meta': settings.renderGoal,
   '/time': team.render,
+  '/pokemon': team.renderMon,
   '/pokedex': pokedex.render,
   '/ginasios': gyms.render,
   '/batalha': gyms.renderBattle,
