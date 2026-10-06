@@ -133,15 +133,13 @@ export function habitRow(item, sub) {
     </li>`;
 }
 
-function starterPicker(dex, state) {
-  // Cada jornada comeca com um dos 3 iniciais da geracao da regiao.
-  const next = state.needsStarter;
-  const region = next && dex.regions.find((r) => r.id === next.region);
-  const options = startersOf(next ? next.gen : 1);
+// So no comeco do jogo: nas regioes seguintes o time vem da caixa, e os
+// iniciais de cada geracao aparecem como selvagens.
+function starterPicker(dex) {
+  const options = startersOf(1);
   return html`
-    ${raw(next ? html`<p class="banner banner--good">Liga vencida! Seu time foi para o Hall da Fama. A jornada continua em ${region.name}.</p>` : '')}
     <section class="sec">
-      <h2 class="section-title">${next ? `Inicial de ${region.name}` : 'Escolha seu inicial'}</h2>
+      <h2 class="section-title">Escolha seu inicial</h2>
       <p class="hint">Ele começa no nível 1, como todo pokémon que você capturar. Cada dia na meta o time sobe 1 nível; dia abaixo da meta, perde 1.</p>
     </section>
     <div class="starters">
@@ -161,8 +159,10 @@ function yesterdayLine(state, today) {
 }
 
 function goalCard(dex, state, list, progress, attack) {
+  // Sem time (o vencedor da liga foi para o Hall e a caixa estava vazia), o
+  // card fala do selvagem, que vai formar o time novo.
   const me = state.party[0];
-  const name = dex.byId.get(me.species).name;
+  const name = me && dex.byId.get(me.species).name;
   const goal = db.settings().goal;
   const done = list.filter((i) => i.done).length;
   const counted = list.filter((i) => i.done || i.mustDo).length;
@@ -175,14 +175,15 @@ function goalCard(dex, state, list, progress, attack) {
     sub = 'Sem hábitos agendados hoje.';
   } else if (met) {
     title = 'Meta batida!';
-    sub = `${name} subiu pro Nv ${me.level} · +1 doce${state.metStreak % 7 === 0 ? ' · +1 Pedra da Evolução' : ''}`;
+    sub = `${me ? `${name} subiu pro Nv ${me.level}` : 'Sem time: capture o selvagem'} · +1 doce${state.metStreak % 7 === 0 ? ' · +1 Pedra da Evolução' : ''}`;
   } else {
     title = html`${done} de ${list.length} · falta <b>${missing}</b>`;
-    sub = `Na meta: ${name} Nv ${me.level + 1}, +1 doce e um selvagem aparece`;
+    sub = me ? `Na meta: ${name} Nv ${me.level + 1}, +1 doce e um selvagem aparece` : 'Sem time: na meta aparece um selvagem para começar o novo';
   }
   return html`
     <section class="goal${attack ? ' is-attack' : ''}${met ? ' is-met' : ''}" aria-label="Meta de hoje">
-      <a class="goal__pic" href="#/pokemon?uid=${me.uid}" aria-label="${name}, Nv ${me.level}"><img class="sprite" src="${sprite(me.species)}" alt=""></a>
+      ${raw(me ? html`<a class="goal__pic" href="#/pokemon?uid=${me.uid}" aria-label="${name}, Nv ${me.level}"><img class="sprite" src="${sprite(me.species)}" alt=""></a>`
+    : html`<span class="goal__pic">${raw(emptyBall(56))}</span>`)}
       <span class="grow">
         <span class="goal__title">${raw(String(title))}</span>
         <span class="goal__bar"><span style="width: ${pct(toNextLevel(progress, goal))}"></span></span>
@@ -263,8 +264,8 @@ export async function render(view) {
   const attack = attackPending;
   attackPending = false;
 
-  if (g && (!g.state.started || g.state.needsStarter)) {
-    view.innerHTML = starterPicker(g.dex, g.state);
+  if (g && !g.state.started) {
+    view.innerHTML = starterPicker(g.dex);
     view.onclick = (e) => {
       const btn = e.target.closest('[data-starter]');
       if (btn) chooseStarter(g.dex, Number(btn.dataset.starter), today);

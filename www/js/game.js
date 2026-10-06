@@ -52,10 +52,9 @@ export function play(input, dex) {
   const seen = new Set();
   const plain = (list) => list.map(({ caughtOn: _, ...m }) => m);
 
-  // Cada jornada (uma por regiao) comeca com um inicial. Um
-  // `start` so vale com o time vazio: no comeco e depois de cada campeao.
+  // So existe um inicial, o do comeco do jogo; outros `start` sao ignorados.
   const begin = (e) => {
-    if (party.length) return;
+    if (e !== start) return;
     party.push({ uid: nextUid++, species: e.species, level: START_LEVEL });
     caught.add(e.species);
   };
@@ -155,16 +154,19 @@ export function play(input, dex) {
   let region = 0;
   let step = 0;
   let lostOn = null;
-  // Vencer o campeao fecha a jornada: time e caixa vao para o Hall da Fama e
-  // a proxima regiao comeca do zero, com os niveis originais do jogo dela.
+  // Vencer o campeao fecha a jornada: o time vencedor vai para o Hall da Fama
+  // e sai de uso. A caixa vira o time da proxima regiao, todos no nivel 1 (sem
+  // desevoluir), para os niveis originais da liga seguinte valerem.
   const fight = (e) => {
     if (!e.won) { lostOn = e.day; return; }
     lostOn = null;
     step++;
     if (step < stepsOf(regions[region]).length) return;
-    hall.push({ region: regions[region].id, team: plain(party), box: plain(box) });
-    party.length = 0;
-    box.length = 0;
+    hall.push({ region: regions[region].id, team: plain(party) });
+    const rest = box.splice(0);
+    for (const mon of rest) mon.level = START_LEVEL;
+    party.splice(0, party.length, ...rest.slice(0, PARTY_SIZE));
+    box.push(...rest.slice(PARTY_SIZE));
     region++;
     step = 0;
   };
@@ -189,7 +191,9 @@ export function play(input, dex) {
       if (e.type === 'battle') fight(e);
       if (e.type === 'party') arrange(e);
     }
-    const wild = party.length ? wildOf(day) : null;
+    // Sem time (caixa vazia depois de um campeao), o selvagem ainda aparece:
+    // a primeira captura forma o time.
+    const wild = wildOf(day);
     if (wild) seen.add(wild.id);
     levelUp(day);
     // Doce e pedra depois da subida do dia: os ganhos hoje ja valem hoje.
@@ -222,12 +226,8 @@ export function play(input, dex) {
   const result = {
     started: true, party: plain(party), box: plain(box), hall, balls, candies, stones, metStreak, challenge, lastDay,
     caught: sorted(caught), seen: sorted(new Set([...seen, ...caught])),
-    wild: null, needsStarter: null,
+    wild: null,
   };
-  if (!party.length) {
-    if (region < regions.length) result.needsStarter = { region: regions[region].id, gen: region + 1 };
-    return result;
-  }
 
   const species = wildOf(input.today);
   if (!species) return result;
@@ -242,7 +242,7 @@ export function play(input, dex) {
   const wild = {
     species: species.id,
     // Depois de pego, fica no nivel da captura (a media do time muda com ele).
-    level: catchToday?.level ?? Math.max(2, avgLevel() - 2),
+    level: catchToday?.level ?? (party.length ? Math.max(2, avgLevel() - 2) : 2),
     hp,
     chance: Math.min(1, odds / 255),
     caught: Boolean(catchToday),

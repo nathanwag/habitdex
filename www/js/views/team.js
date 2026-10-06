@@ -44,7 +44,7 @@ const canCandyOf = ({ party, candies }) => {
 export async function render(view) {
   setTop({ title: 'Time' });
   const { dex, state } = await game();
-  if (!state.started || state.needsStarter) {
+  if (!state.started) {
     view.innerHTML = html`<a class="btn btn--primary btn--block" href="#/">Escolha seu inicial no Hoje</a>`;
     return;
   }

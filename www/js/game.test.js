@@ -234,21 +234,28 @@ test('o time que depende do inicial segue o tipo do seu primeiro pokemon (fogo s
   assert.deepEqual(blueWith(16).team.map((p) => p.species), [18, 9]);
 });
 
-test('vencer o campeao manda time e caixa para o Hall da Fama e pede um inicial para a proxima regiao', () => {
-  const events = [...started().events, ...wins(4)];
-  const state = play(started('2026-10-05', { events }), leagueDex);
+test('vencer o campeao manda o time vencedor para o Hall (fora de uso); a caixa vira o time da proxima regiao, no nivel 1', () => {
+  // Pidgey pego no dia 02 e mandado para a caixa; 01 a 04 na meta: Charmander
+  // no 5 quando vence a liga, no dia 05.
+  const events = [...started('2026-10-01').events,
+    { type: 'catch', day: '2026-10-02', species: 16, level: 2, caught: true },
+    { type: 'party', day: '2026-10-02', uids: [1] }, ...wins(4)];
+  const state = play(started('2026-10-01', { events, checks: everyDay('2026-10-01', '2026-10-04') }), leagueDex);
   assert.deepEqual([state.challenge.region, state.challenge.name], ['johto', 'Falkner']);
-  assert.deepEqual(state.hall, [{ region: 'kanto', team: [{ uid: 1, species: 4, level: 1 }], box: [] }]);
-  assert.deepEqual([state.party, state.box, state.wild], [[], [], null]);
-  assert.deepEqual(state.needsStarter, { region: 'johto', gen: 2 });
+  assert.deepEqual(state.hall, [{ region: 'kanto', team: [{ uid: 1, species: 4, level: 5 }] }]);
+  assert.deepEqual([state.party, state.box], [[{ uid: 2, species: 16, level: 1 }], []]);
 });
 
-test('com o novo inicial a jornada recomeca no nivel 1', () => {
+test('sem ninguem na caixa, a proxima regiao comeca sem time: nao ha outro inicial, a primeira captura forma o time', () => {
   const events = [...started().events, ...wins(4), { type: 'start', day: '2026-10-05', species: 7 }];
-  const state = play(started('2026-10-05', { events }), leagueDex);
-  assert.deepEqual(state.party, [{ uid: 2, species: 7, level: 1 }]);
-  assert.equal(state.needsStarter, null);
-  assert.deepEqual(state.caught, [4, 7]);
+  const state = play(started('2026-10-05', { events, checks: [check(1, '2026-10-05')] }), leagueDex);
+  assert.deepEqual([state.party, state.caught], [[], [4]]);
+  assert.equal(state.wild.canThrow, true);
+  const after = play(started('2026-10-05', {
+    checks: [check(1, '2026-10-05')],
+    events: [...events, { type: 'catch', day: '2026-10-05', species: state.wild.species, level: 2, caught: true }],
+  }), leagueDex);
+  assert.deepEqual(after.party, [{ uid: 2, species: state.wild.species, level: 1 }]);
 });
 
 test('a Pokedex marca como capturado o que voce teve (evolucoes inclusive) e como visto tambem os selvagens de cada dia', () => {

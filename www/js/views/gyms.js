@@ -32,7 +32,7 @@ const LOCK = '<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="
 export async function render(view, params) {
   setTop({ title: 'Liga' });
   const { dex, state } = await game();
-  if (!state.started || state.needsStarter) {
+  if (!state.started) {
     view.innerHTML = html`<a class="btn btn--primary btn--block" href="#/">Escolha seu inicial no Hoje</a>`;
     return;
   }
@@ -68,7 +68,7 @@ export async function render(view, params) {
   let next = '';
   if (isHere) {
     const ace = aceOf(ch.team);
-    const myTop = Math.max(...state.party.map((m) => m.level));
+    const myTop = state.party.length ? `Nv ${Math.max(...state.party.map((m) => m.level))}` : 'sem time';
     next = html`
       <section class="next-boss">
         <span class="next-boss__pic"><img class="sprite" src="${sprite(ace.species)}" alt=""></span>
@@ -76,7 +76,7 @@ export async function render(view, params) {
           <span class="next-boss__kicker">PRÓXIMO · ${KIND[ch.kind].toUpperCase()}${ch.kind === 'gym' ? ` ${ch.index + 1}` : ''}</span>
           <span class="row"><span class="next-boss__name grow">${ch.name}</span>${raw(typeTag(ch.type))}</span>
           <span class="next-boss__ace">Ás: ${name(ace.species)} · Nv ${ace.level}</span>
-          <span class="next-boss__vs">Seu mais forte: Nv ${myTop}</span>
+          <span class="next-boss__vs">Seu mais forte: ${myTop}</span>
           ${raw(ch.canBattle
             ? html`<a class="btn btn--primary btn--block" href="#/batalha">Desafiar</a>`
             : html`<button class="btn btn--block" type="button" disabled>Perdeu hoje · tente amanhã</button>`)}
