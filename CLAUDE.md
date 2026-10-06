@@ -32,8 +32,9 @@ npm run gyms                     # regera www/data/gyms.json (times dos jogos, n
 ## Tema Pokémon (em construção)
 
 O app está virando um jogo de Pokémon (uso pessoal; arte e nomes são da
-Nintendo/Game Freak, não publicar). Dados e sprites são gerados por script e
-versionados no repo (sprites ~140 MB); não edite à mão.
+Nintendo/Game Freak). O repo é público sob PolyForm Noncommercial (ver
+README). Dados e sprites são gerados por script e versionados no repo
+(sprites ~140 MB); não edite à mão.
 
 **As regras do jogo são provisórias.** O usuário vai usar o mock jogável e só
 então decidir como o jogo funciona (ritmo de XP, escala de nível entre

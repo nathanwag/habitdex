@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "description": "Tracker de hábitos no iPhone: PWA + Web Push disparado por um Cloudflare Worker.",
-  "license": "MIT",
+  "license": "PolyForm-Noncommercial-1.0.0",
   "scripts": {
     "dev": "browser-sync start --config bs-config.cjs",
     "dev:worker": "npm --prefix worker run dev",

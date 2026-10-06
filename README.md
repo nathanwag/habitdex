@@ -17,7 +17,7 @@ cada hábito com um toque, e os horários dos lembretes ficam em cada hábito.
 - **Virada do dia configurável** (ex.: 05:00, pra madrugada contar no dia
   anterior).
 - **Custo zero:** um Cloudflare Worker no plano grátis. O repositório pode ser
-  privado.
+  privado ou público.
 
 ## Como funciona
 
@@ -91,3 +91,16 @@ disparar o cron na mão:
 No Chrome do desktop, o push funciona em `localhost`, então dá pra testar o
 fluxo inteiro sem o iPhone. Os logs de produção aparecem em
 `npx wrangler tail` (rode dentro de `worker/`).
+
+## Licença
+
+O código é livre para qualquer uso **não comercial** (pessoal, estudo,
+hobby, pesquisa), inclusive copiar, modificar e redistribuir, sob a
+[PolyForm Noncommercial 1.0.0](LICENSE.md). Uso comercial não é permitido.
+
+Pokémon e todos os nomes, sprites e dados relacionados são © Nintendo,
+Creatures Inc. e GAME FREAK inc. Eles não fazem parte desta licença. Este é um
+projeto de fã, sem fins lucrativos e sem vínculo com essas empresas. Os dados
+vêm da [PokeAPI](https://pokeapi.co) e os sprites do
+[Pokémon Showdown](https://pokemonshowdown.com). As fontes Fredoka e Nunito
+são da SIL Open Font License.
