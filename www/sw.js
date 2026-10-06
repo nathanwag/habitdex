@@ -4,7 +4,7 @@
  * cache-primeiro com revalidacao. Bumpar VERSION e como se deploya.
  */
 
-const VERSION = 'habitos-v19';
+const VERSION = 'habitos-v24';
 // Os sprites (milhares, baixados sob demanda) ficam fora do VERSION para nao
 // serem apagados e baixados de novo a cada deploy.
 const SPRITES = 'habitos-sprites-v1';
@@ -31,6 +31,7 @@ const ASSETS = [
   './js/habits.js',
   './js/game.js',
   './js/battle.js',
+  './js/backup.js',
   './js/pokemon.js',
   './js/views/team.js',
   './js/views/pokedex.js',
@@ -86,8 +87,13 @@ self.addEventListener('fetch', (event) => {
     event.respondWith((async () => {
       try {
         const fresh = await fetch(req);
-        quiet(caches.open(VERSION).then((c) => c.put('./index.html', fresh.clone())));
-        return fresh;
+        // Pagina de erro (404 de um Worker fora do ar) nao substitui o app
+        // guardado: abrir o app instalado tem que continuar funcionando.
+        if (fresh.ok) {
+          quiet(caches.open(VERSION).then((c) => c.put('./index.html', fresh.clone())));
+          return fresh;
+        }
+        return (await quiet(caches.match('./index.html'))) || fresh;
       } catch {
         return (await quiet(caches.match('./index.html'))) || Response.error();
       }
@@ -121,7 +127,7 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   let n = {};
   try { n = event.data?.json()?.notification ?? {}; } catch { /* payload nao-JSON */ }
-  event.waitUntil(self.registration.showNotification(n.title || 'Hábitos', {
+  event.waitUntil(self.registration.showNotification(n.title || 'HabitDex', {
     body: n.body || '',
     tag: n.tag || 'habito',
     lang: 'pt-BR',

@@ -171,3 +171,28 @@ export async function addEvent(event) {
 export async function clearEvents() {
   await tx('events', 'readwrite', (t) => { t.objectStore('events').clear(); });
 }
+
+/** Tudo o que o aparelho guarda, para o backup. */
+export async function exportData() {
+  const [habits, checks, events] = await Promise.all(['habits', 'checks', 'events']
+    .map((store) => tx(store, 'readonly', (t) => req(t.objectStore(store).getAll()))));
+  return {
+    habits, checks, events, settings: settingsCache,
+  };
+}
+
+/** Troca habitos, checks e eventos pelos do backup, numa transacao so: ou
+ *  entra tudo, ou nada muda. */
+export async function importData({
+  habits, checks, events, settings,
+}) {
+  await tx(['habits', 'checks', 'events'], 'readwrite', (t) => {
+    const stores = { habits, checks, events };
+    for (const [name, rows] of Object.entries(stores)) {
+      const store = t.objectStore(name);
+      store.clear();
+      for (const row of rows) store.put(row);
+    }
+  });
+  await saveSettings(settings);
+}

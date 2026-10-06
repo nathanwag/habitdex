@@ -2,7 +2,7 @@
 
 ## O que é
 
-**Hábitos** (nome provisório): tracker de hábitos sim/não no iPhone, com
+**HabitDex**: tracker de hábitos sim/não no iPhone, com
 lembrete por push dos que ainda faltam. Segue o stack e as regras do
 `../glub`, que por sua vez veio do `../gym_tracker`. Tem duas metades num repo
 só.
@@ -107,7 +107,9 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 
 ## Modelo
 
-- **`habits`**: `{ id, name, schedule, remindAt, createdDay, archived, order }`.
+- **`habits`**: `{ id, name, icon, schedule, remindAt, createdDay, archived, order }`.
+  `icon` é um emoji (o último digitado no campo, por `iconOf`) ou nulo; sem ele mostra a
+  inicial (`habitIcon`).
   `schedule` é `{ kind: 'daily' }`, `{ kind: 'days', days: [1, 3, 5] }`
   (numeração de `Date#getDay`) ou `{ kind: 'weekly', times: 3 }`.
 - **`versions`** do hábito: `[{ from, schedule, archived }]`. Mudar a
@@ -178,14 +180,18 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   (o círculo marca, o nome abre), uma linha no fim com o próximo lembrete e o
   "+ Novo hábito", e a faixa de
   desfazer/adiar depois do toque na notificação.
-- `#/habito?id=` (`views/habit.js`): sequência, taxa e a grade de semanas a
-  partir da criação (máx. 12). Tocar num dia passado marca ou desmarca.
+- `#/habito?id=&mes=AAAA-MM` (`views/habit.js`): cabeçalho com ícone, nome e a
+  Poké Bola de hoje; sequência, recorde (`bestStreak`), taxa e total numa linha;
+  e o calendário do mês (`monthDays`), com setas entre o mês da criação e o
+  atual. Tocar num dia passado marca ou desmarca.
 - `#/habito/novo` e `#/habito/editar?id=` (`views/habit-form.js`): nome,
   frequência, lembrete e arquivar.
 - `#/habitos` (`views/habits.js`): todos os hábitos, ordem do Hoje e os
   arquivados.
 - `#/ajustes` (`views/settings.js`): liga/desliga dos lembretes, teste,
-  `/ajustes/virada` e `/ajustes/servidor` (token).
+  `/ajustes/virada`, `/ajustes/servidor` (token) e Dados: exportar/importar
+  (`backup.js`; o token fica fora do arquivo). Mudar o endereço do app (nome do
+  Worker) zera o IndexedDB no iPhone: só se migra exportando e importando.
 - `#/feito?habito=&lembrete=`: o toque na notificação (marca e cai no Hoje).
 - O **Hoje** começa por um card curto da meta (o principal, "2 de 5 · falta 2"
   e a barra; marcar hábito faz ele pular). O selvagem do dia só aparece depois
@@ -215,8 +221,9 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 Só os módulos puros e o Worker são testados. Os seams são:
 - `reminder.js`: `dayOf`, `weekOf`, `isScheduled`, `mustDoToday`,
   `dueReminders`, `nextReminder` e `configError`
-- `habits.js`: `todayList`, `dayProgress`, `streak`, `habitHistory` e
+- `habits.js`: `todayList`, `dayProgress`, `streak`, `habitHistory`, `iconOf`, `habitIcon`, `bestStreak`, `monthDays` e
   `syncState`
+- `backup.js`: `makeBackup` e `parseBackup`
 - `game.js`: `play` (com uma Pokédex falsa pequena) e `battle.js`:
   `createBattle`, `turn` (sorteio por parâmetro) e `summary` (a ficha)
 - `worker/src/api.js` (`handleApi`) e `cron.js` (`handleCron`), com KV e

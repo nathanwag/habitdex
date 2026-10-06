@@ -1,8 +1,9 @@
-/* Ajustes — liga/desliga dos lembretes, virada do dia e o servidor. Os
- * horários ficam em cada hábito. */
+/* Ajustes — liga/desliga dos lembretes, virada do dia, o servidor e o backup
+ * dos dados. Os horários ficam em cada hábito. */
 
 import * as db from '../db.js';
 import * as push from '../push.js';
+import { makeBackup, parseBackup } from '../backup.js';
 import {
   html, raw, setTop, toast, isIOS, isStandalone, refresh, APP_NAME,
 } from '../ui.js';
@@ -14,6 +15,8 @@ const ICON = {
   link: '<path d="M15 7h3a5 5 0 0 1 0 10h-3"/><path d="M9 17H6A5 5 0 0 1 6 7h3"/><path d="M8 12h8"/>',
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
   reset: '<path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/>',
+  download: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/>',
+  upload: '<path d="M12 21V9"/><path d="M7 14l5-5 5 5"/><path d="M5 3h14"/>',
 };
 const icon = (name) => raw(`<svg viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`);
 const CHEVRON = raw('<svg class="set-item__chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>');
@@ -97,7 +100,28 @@ export async function render(view) {
         ${raw(item({ href: '#/ajustes/servidor', ico: 'link', title: 'Servidor', sub: s.token ? 'Token salvo' : 'Falta colar o token' }))}
       </div>
     </section>
+
+    <section class="sec">
+      <h2 class="section-title">Dados</h2>
+      <div class="card">
+        <button class="set-item" type="button" data-action="export">
+          <span class="set-item__ico">${icon('download')}</span>
+          <span class="set-item__text"><span class="set-item__title">Exportar dados</span>
+            <span class="set-item__sub">Hábitos, marcações e o jogo num arquivo</span></span>
+        </button>
+        <label class="set-item">
+          <span class="set-item__ico">${icon('upload')}</span>
+          <span class="set-item__text"><span class="set-item__title">Importar dados</span>
+            <span class="set-item__sub">Troca tudo deste aparelho pelo do arquivo</span></span>
+          <input class="visually-hidden" type="file" name="backup" accept="application/json,.json">
+        </label>
+      </div>
+    </section>
   `;
+
+  view.onchange = (e) => {
+    if (e.target.name === 'backup' && e.target.files[0]) importBackup(e.target.files[0], e.target);
+  };
 
   view.onclick = (e) => {
     if (e.target.name === 'reminders') {
@@ -106,8 +130,44 @@ export async function render(view) {
     }
     const action = e.target.closest('[data-action]');
     if (action?.dataset.action === 'reset-game') { resetGame(); return; }
+    if (action?.dataset.action === 'export') { exportBackup(); return; }
     if (action) runAction(action.dataset.action, action);
   };
+}
+
+// No iPhone a folha de compartilhar salva em Arquivos; sem ela, baixa.
+async function exportBackup() {
+  const text = makeBackup(await db.exportData(), new Date());
+  const file = new File([text], `habitdex-${db.dayOf()}.json`, { type: 'application/json' });
+  if (navigator.canShare?.({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file] });
+    } catch (err) {
+      if (err.name !== 'AbortError') toast('Não deu para compartilhar o arquivo.');
+    }
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = file.name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+async function importBackup(file, input) {
+  try {
+    const data = parseBackup(await file.text());
+    // eslint-disable-next-line no-alert
+    if (!window.confirm(`Trocar tudo deste aparelho pelo backup? São ${data.habits.length} hábitos e ${data.checks.length} marcações.`)) return;
+    await db.importData(data);
+    push.sync().catch(() => {});
+    toast('Dados importados');
+    location.hash = '#/';
+  } catch (err) {
+    toast(err.message);
+  } finally {
+    input.value = '';
+  }
 }
 
 async function resetGame() {
