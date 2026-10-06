@@ -34,6 +34,9 @@ export function play(input, dex) {
   let candies = 0;
   let lastDay = null;
   const caught = new Set();
+  // Pegos hoje: continuam podendo ser o selvagem de hoje (o que acabou de ser
+  // capturado), mas nao o de amanha.
+  let caughtToday = new Set();
   const seen = new Set();
   const plain = (list) => list.map(({ caughtOn: _, ...m }) => m);
 
@@ -85,6 +88,7 @@ export function play(input, dex) {
   const throwBall = (e) => {
     balls--;
     if (!e.caught) return;
+    if (!caught.has(e.species)) caughtToday.add(e.species);
     caught.add(e.species);
     const mon = { uid: nextUid++, species: e.species, level: START_LEVEL, caughtOn: e.day };
     (party.length < PARTY_SIZE ? party : box).push(mon);
@@ -142,7 +146,8 @@ export function play(input, dex) {
   };
 
   // Selvagens: formas basicas da geracao da regiao atual (as regioes estao
-  // na ordem das geracoes), sem lendarios e miticos, e so quem tem sprite.
+  // na ordem das geracoes), sem lendarios e miticos, so quem tem sprite e
+  // nunca quem ja foi capturado. Sem ninguem para pegar, nao aparece selvagem.
   const sprites = new Set(dex.sprites);
   const pools = new Map();
   const wildOf = (day) => {
@@ -151,11 +156,12 @@ export function play(input, dex) {
       pools.set(gen, dex.pokemon.filter((p) => p.gen === gen && !p.legendary && !p.mythical
         && p.evolvesFrom === null && sprites.has(p.id)));
     }
-    const pool = pools.get(gen);
-    return pool[Math.floor(seeded(day) * pool.length)];
+    const pool = pools.get(gen).filter((p) => !caught.has(p.id) || caughtToday.has(p.id));
+    return pool.length ? pool[Math.floor(seeded(day) * pool.length)] : null;
   };
 
   for (let day = start.day; day <= input.today; day = addDays(day, 1)) {
+    caughtToday = new Set();
     for (const e of input.events) {
       if (e.day !== day) continue;
       if (e.type === 'start') begin(e);
@@ -163,7 +169,8 @@ export function play(input, dex) {
       if (e.type === 'battle') fight(e);
       if (e.type === 'party') arrange(e);
     }
-    if (party.length) seen.add(wildOf(day).id);
+    const wild = party.length ? wildOf(day) : null;
+    if (wild) seen.add(wild.id);
     levelUp(day);
     // Doce depois da subida do dia: o doce de hoje ja pode ser usado hoje.
     for (const e of input.events) if (e.type === 'candy' && e.day === day) useCandy(e);
@@ -199,6 +206,7 @@ export function play(input, dex) {
   }
 
   const species = wildOf(input.today);
+  if (!species) return result;
   // Cada habito feito hoje tira vida do selvagem. Captura pela formula da
   // Gen 3/4 com Pokebola comum e sem status: (3M - 2H) * taxa / 3M, sobre 255,
   // com a vida em centesimos e no minimo 1.

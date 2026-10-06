@@ -91,16 +91,39 @@ test('o selvagem do dia e sempre o mesmo naquela data e e uma forma basica da ge
     assert.equal(play(input, wider).wild.species, wild.species);
     seen.add(wild.species);
   }
-  assert.deepEqual([...seen].sort((a, b) => a - b), [4, 16]);
+  // O Charmander e o inicial: ja capturado, nao aparece.
+  assert.deepEqual([...seen].sort((a, b) => a - b), [16]);
+});
+
+test('o selvagem nunca e quem voce ja capturou; o que escapou pode voltar', () => {
+  const two = { ...dex, pokemon: [...dex.pokemon, species(19, 'Rattata')], sprites: [...dex.sprites, 19] };
+  const wildsFrom = (events, from) => {
+    const out = new Set();
+    for (let i = from; i <= 28; i++) {
+      const today = `2026-10-${String(i).padStart(2, '0')}`;
+      out.add(play(started('2026-10-01', { today, events }), two).wild.species);
+    }
+    return [...out].sort((a, b) => a - b);
+  };
+  const start = { type: 'start', day: '2026-10-01', species: 4 };
+  assert.deepEqual(wildsFrom([start], 1), [16, 19]);
+  // Pidgey capturado no dia 2: dali em diante so Rattata.
+  assert.deepEqual(wildsFrom([start, { type: 'catch', day: '2026-10-02', species: 16, level: 2, caught: true }], 3), [19]);
+  // Todos pegos: nao aparece mais selvagem na regiao.
+  const all = [start, { type: 'catch', day: '2026-10-02', species: 16, level: 2, caught: true },
+    { type: 'catch', day: '2026-10-03', species: 19, level: 2, caught: true }];
+  assert.equal(play(started('2026-10-01', { today: '2026-10-04', events: all }), two).wild, null);
+  // Pidgey que escapou continua aparecendo.
+  assert.deepEqual(wildsFrom([start, { type: 'catch', day: '2026-10-02', species: 16, level: 2, caught: false }], 3), [16, 19]);
 });
 
 test('cada habito feito hoje enfraquece o selvagem; a chance segue a formula oficial e so da para jogar na meta', () => {
-  const onlyCharmander = { ...dex, sprites: [4, 5] };
-  const today = (checks) => play(started('2026-10-05', { habits: [daily(1), daily(2)], checks }), onlyCharmander).wild;
+  const onlyRattata = { ...dex, pokemon: [...dex.pokemon, species(19, 'Rattata')], sprites: [4, 5, 19] };
+  const today = (checks) => play(started('2026-10-05', { habits: [daily(1), daily(2)], checks }), onlyRattata).wild;
 
   // Taxa 45, Pokebola comum: (3*max - 2*vida) * 45 / (3*max), sobre 255.
   const none = today([]);
-  assert.deepEqual(none, { species: 4, level: 2, hp: 1, chance: 15 / 255, caught: false, canThrow: false });
+  assert.deepEqual(none, { species: 19, level: 2, hp: 1, chance: 15 / 255, caught: false, canThrow: false });
   const half = today([check(1, '2026-10-05')]);
   assert.deepEqual([half.hp, half.chance, half.canThrow], [0.5, 30 / 255, false]);
   // Vida minima de 1 em 100: (300 - 2) * 45 / 300 = 44,7, arredonda para 44.

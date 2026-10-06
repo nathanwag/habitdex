@@ -86,8 +86,11 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   geração da região. Assim os níveis
   originais de cada liga continuam valendo.
 - **O selvagem do dia sai de um sorteio pela data** (`seeded`): o mesmo em
-  qualquer recálculo. Forma básica da geração da região (por ora só Gen 1),
-  sem lendário/mítico e com sprite. A chance é a fórmula da Gen 3/4.
+  qualquer recálculo. Forma básica da geração da região, sem lendário/mítico,
+  com sprite e **nunca quem já foi capturado** (o inicial e as evoluções
+  inclusive; o que escapou volta). O pego hoje continua sendo o selvagem de
+  hoje (`caughtToday`). Com todos pegos, `wild` é `null` e o Hoje não mostra
+  o card. A chance é a fórmula da Gen 3/4.
 - **Arremesso é sorteado pela tela e gravado com o resultado** (`catch` com
   `caught`): o motor nunca sorteia captura de novo ao recalcular.
 - **Liga em sequência** (`play` → `challenge`): ginásios, Elite Four e campeão,

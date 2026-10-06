@@ -192,9 +192,11 @@ function goalCard(dex, state, list, progress, attack) {
 }
 
 // O selvagem do dia so aparece depois da meta batida, para jogar a Poke Bola.
+// Sem selvagem (todos da regiao ja pegos), nada.
 function wildCard(dex, state, progress) {
   const { wild, balls } = state;
   const goal = db.settings().goal;
+  if (!wild) return '';
   if (!wild.caught && (progress === null || progress < goal)) return '';
   const name = dex.byId.get(wild.species).name;
   let action;
