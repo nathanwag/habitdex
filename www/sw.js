@@ -4,7 +4,7 @@
  * cache-primeiro com revalidacao. Bumpar VERSION e como se deploya.
  */
 
-const VERSION = 'habitos-v16';
+const VERSION = 'habitos-v17';
 // Os sprites (milhares, baixados sob demanda) ficam fora do VERSION para nao
 // serem apagados e baixados de novo a cada deploy.
 const SPRITES = 'habitos-sprites-v1';
@@ -34,6 +34,7 @@ const ASSETS = [
   './js/pokemon.js',
   './js/views/team.js',
   './js/views/pokedex.js',
+  './js/views/mon-parts.js',
   './js/views/gyms.js',
   './data/pokedex.json',
   './data/gyms.json',

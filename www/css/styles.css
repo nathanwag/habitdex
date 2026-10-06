@@ -938,16 +938,17 @@ button.cell { cursor: pointer; }
 .mon-hero__types { display: flex; gap: 6px; }
 .mon-hero__sub { font-family: var(--display); font-weight: 500; color: var(--muted); }
 
-.statlist { display: grid; gap: 8px; margin: 0 0 10px; padding: 0; list-style: none; }
-.mon-stat { display: grid; grid-template-columns: 82px 36px 1fr 28px; align-items: center; gap: 8px; }
+.statlist { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.mon-stat { display: grid; grid-template-columns: 82px 36px 1fr; align-items: center; gap: 8px; }
 .mon-stat__label { font-size: var(--fs-sm); font-weight: 800; color: var(--muted); }
 .mon-stat__value { font-family: var(--display); font-weight: 600; text-align: right; }
 .mon-stat__bar { height: 8px; overflow: hidden; border-radius: 99px; background: var(--surface-2); }
 .mon-stat__bar > span { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
-.mon-stat__base { font-size: var(--fs-xs); font-weight: 800; color: var(--muted); text-align: right; }
 
 .moves { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
-.moves + .hint, .statlist + .hint { margin: 8px 0 0; }
+button.pill { border: 0; cursor: pointer; }
+.candy-info { display: grid; justify-items: center; gap: 8px; padding: 4px 0 8px; text-align: center; }
+.candy-info svg { width: 48px; height: 48px; }
 .move {
   display: flex;
   flex-direction: column;
@@ -964,19 +965,31 @@ button.cell { cursor: pointer; }
 .move--next { flex-direction: row; align-items: center; gap: 12px; }
 .move__level { flex: none; width: 48px; font-family: var(--display); font-weight: 600; color: var(--blue); }
 
-.evo { display: flex; align-items: center; gap: 12px; }
+.evo { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+a.evo:active, a.dex__cell:active { transform: translateY(1px); }
+.evo.is-inert { opacity: .6; }
+.view .stack > .evo + .evo { margin-top: 8px; }
 .evo__pic {
+  position: relative;
   flex: none;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  width: 64px;
+  width: 72px;
   height: 64px;
-  overflow: hidden;
+}
+.evo__pic::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 70%;
+  height: 12px;
   border-radius: 50%;
   background: var(--surface-2);
+  transform: translateX(-50%);
 }
-.evo__pic .sprite { max-width: 100%; max-height: 60px; object-fit: contain; }
+.evo__pic .sprite { position: relative; max-width: 100%; max-height: 64px; object-fit: contain; margin-bottom: 4px; }
 
 .matchup { display: flex; flex-direction: column; gap: 6px; }
 .matchup__title { font-size: var(--fs-sm); font-weight: 800; color: var(--muted); }
@@ -1005,8 +1018,40 @@ button.cell { cursor: pointer; }
 .dex__num { font-size: var(--fs-xs); color: var(--muted); font-weight: 800; }
 .dex__name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--fs-xs); font-weight: 800; }
 .dex__q { margin: auto; color: var(--muted); font-family: var(--display); font-weight: 600; font-size: 1.3rem; }
+a.dex__cell { color: inherit; text-decoration: none; }
 .dex__cell.is-unknown { background: var(--surface-2); box-shadow: none; }
-.dex-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+.dex-total { padding: 14px 16px; }
+.dex-total__nums { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; }
+.dex-total__nums span { display: flex; flex-direction: column; font-size: var(--fs-xs); font-weight: 800; color: var(--muted); }
+.dex-total__nums b { font-family: var(--display); font-size: 1.6rem; font-weight: 600; line-height: 1.1; color: var(--text); }
+.dex-total__nums span:first-child b { color: var(--ball); }
+.dex-bar { position: relative; display: block; height: 8px; margin-top: 12px; overflow: hidden; border-radius: 99px; background: var(--surface-2); }
+.dex-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; }
+.dex-bar__seen { background: var(--ball-empty); }
+.dex-bar__caught { background: var(--ball); }
+
+.view > .dex-gen { margin-top: 10px; }
+.dex-gen__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tap);
+  padding: 10px 14px;
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  list-style: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.dex-gen__head::-webkit-details-marker { display: none; }
+.dex-gen__title { font-family: var(--display); font-weight: 600; font-size: 1.05rem; }
+.dex-gen__region { margin-left: 6px; font-size: var(--fs-sm); color: var(--muted); font-weight: 700; }
+.dex-gen__count { display: inline-flex; align-items: center; gap: 4px; font-family: var(--display); font-weight: 600; white-space: nowrap; }
+.dex-gen__count .muted { font-family: var(--body, inherit); font-size: var(--fs-xs); font-weight: 800; }
+.dex-gen__chev { flex: none; width: 20px; height: 20px; color: var(--muted); transition: transform .15s; }
+.dex-gen[open] .dex-gen__chev { transform: rotate(180deg); }
+.dex-gen[open] > .dex { margin-top: 10px; margin-bottom: 6px; }
 
 /* ---------- Ginasios ---------- */
 

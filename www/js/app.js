@@ -26,6 +26,7 @@ const ROUTES = {
   '/time': team.render,
   '/pokemon': team.renderMon,
   '/pokedex': pokedex.render,
+  '/pokedex/pokemon': pokedex.renderSpecies,
   '/ginasios': gyms.render,
   '/batalha': gyms.renderBattle,
 };

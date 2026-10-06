@@ -189,9 +189,12 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 - `#/pokemon?uid=` (`renderMon` em `views/team.js`): a ficha de quem está no
   time ou na caixa (status no nível, golpes, próximos golpes, evolução, tipos
   contra ele e as ações). Os números saem de `summary` do `battle.js`, os mesmos
-  da luta.
+  da luta. As partes visuais das fichas ficam em `views/mon-parts.js`.
+- `#/pokedex/pokemon?id=` (`renderSpecies` em `views/pokedex.js`): a ficha da
+  espécie para quem já foi visto (status base, evoluções com a condição, golpes
+  por nível, tipos e os seus daquela espécie).
 - `#/time` (`views/team.js`: o time numa grade 3×2, o primeiro é o principal, e a caixa; tocar abre a ficha), `#/pokedex` (`views/pokedex.js`, sprite só de
-  quem foi visto) e `#/ginasios` (`views/gyms.js`): as abas do jogo, na barra
+  quem foi visto; gerações em grupos que fecham, lembrados no localStorage) e `#/ginasios` (`views/gyms.js`): as abas do jogo, na barra
   de baixo (`#tabs`, só nas telas principais).
 - `#/batalha` (`views/gyms.js`): a luta é sorteada inteira e gravada antes de
   animar; sair no meio não dá outra chance.

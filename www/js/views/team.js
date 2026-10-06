@@ -4,11 +4,14 @@
 
 import * as db from '../db.js';
 import {
-  game, sprite, nextEvolution, candy, TYPE_NAMES,
+  game, sprite, nextEvolution, candy,
 } from '../pokemon.js';
 import { summary } from '../battle.js';
 import {
-  html, raw, setTop, toast, refresh, buzz,
+  hero, statsCard, moveCard, learnList, matchupsCard, evoRow,
+} from './mon-parts.js';
+import {
+  html, raw, setTop, toast, refresh, buzz, openSheet, node,
 } from '../ui.js';
 
 const PARTY_SIZE = 6;
@@ -48,12 +51,18 @@ export async function render(view) {
   const canCandy = canCandyOf(state);
   const free = PARTY_SIZE - party.length;
 
-  view.innerHTML = html`
-    <div class="row">
-      <span class="grow hint">Cada dia na meta: time +1 nível e 1 doce.</span>
-      <span class="pill pill--candy">${raw(candy(20))}${candies} doce${candies === 1 ? '' : 's'}</span>
-    </div>
+  setTop({
+    title: 'Time',
+    actions: html`<button class="pill pill--candy" type="button" id="candy-info">${raw(candy(20))}${candies}</button>`,
+  });
+  document.getElementById('candy-info').onclick = () => openSheet('Doce Raro', node(html`
+    <div class="candy-info">
+      ${raw(candy(48))}
+      <p><strong>Você tem ${candies}.</strong> Ganha 1 por dia na meta.</p>
+      <p class="hint">Sobe 1 nível de quem está abaixo do mais alto do time. Use na ficha do pokémon.</p>
+    </div>`));
 
+  view.innerHTML = html`
     <ul class="party">
       ${raw(party.map((m, i) => html`
         <li><a class="party__mon${i === 0 ? ' is-lead' : ''}" href="#/pokemon?uid=${m.uid}">
@@ -65,7 +74,6 @@ export async function render(view) {
         </a></li>`).join(''))}
       ${raw(html`<li class="party__free">vaga</li>`.repeat(free))}
     </ul>
-    <p class="hint">Toque para ver a ficha, trocar o principal ou usar doce.${party.some(canCandy) ? ' O + marca quem pode receber doce.' : ''}</p>
 
     ${raw(box.length ? html`
       <section class="sec">
@@ -73,7 +81,6 @@ export async function render(view) {
           <h2 class="section-title grow">Caixa</h2>
           <span class="hint">${box.length} pokémon</span>
         </div>
-        <p class="hint">Congelados: só sobem com doce.</p>
         <ul class="box">
           ${raw(box.map((m) => html`
             <li><a class="box__mon" href="#/pokemon?uid=${m.uid}">
@@ -99,24 +106,6 @@ export async function render(view) {
 
 /* ---------- Ficha ---------- */
 
-const STATS = [
-  ['hp', 'PS'], ['atk', 'Ataque'], ['def', 'Defesa'],
-  ['spa', 'At. Esp.'], ['spd', 'Def. Esp.'], ['spe', 'Velocidade'],
-];
-const CLASSES = { physical: 'Físico', special: 'Especial', status: 'Status' };
-const typeTag = (t) => html`<span class="type type--${t}">${TYPE_NAMES[t] ?? t}</span>`;
-const times = (x) => `×${String(x).replace('.', ',')}`;
-const dash = (v, unit = '') => (v == null ? '—' : `${v}${unit}`);
-
-const moveCard = (m) => html`
-  <li class="move${m.power ? '' : ' is-inert'}">
-    <span class="move__head">
-      <strong class="grow">${m.name}</strong>
-      ${raw(typeTag(m.type))}
-    </span>
-    <span class="move__sub">${CLASSES[m.class] ?? m.class} · Poder ${dash(m.power)} · Precisão ${dash(m.accuracy, '%')} · PP ${dash(m.pp)}</span>
-  </li>`;
-
 export async function renderMon(view, params) {
   setTop({ title: 'Pokémon', back: '#/time' });
   const ctx = await game();
@@ -136,16 +125,6 @@ export async function renderMon(view, params) {
   const info = summary(mon, dex);
   const evo = nextEvolution(dex, mon.species);
   const where = slot === 0 ? 'Principal' : slot > 0 ? 'No time' : 'Na caixa';
-  const total = STATS.reduce((sum, [k]) => sum + species.stats[k], 0);
-  const byFactor = (keep) => Object.entries(info.matchups).filter(([, x]) => keep(x))
-    .sort((a, b) => b[1] - a[1]);
-  const group = (title, list) => (list.length ? html`
-    <div class="matchup">
-      <span class="matchup__title">${title}</span>
-      <span class="matchup__list">${raw(list.map(([t, x]) => html`
-        <span class="matchup__item">${raw(typeTag(t))}<small>${times(x)}</small></span>`).join(''))}</span>
-    </div>` : '');
-
   const buttons = [
     ...(slot > 0 ? [['lead', 'Tornar principal', true], ['out', 'Mandar para a caixa']] : []),
     ...(slot === -1 && party.length < 6 ? [['in', 'Trazer para o time', true]] : []),
@@ -153,13 +132,7 @@ export async function renderMon(view, params) {
   ];
 
   view.innerHTML = html`
-    <section class="mon-hero">
-      <span class="mon-hero__pic"><img class="sprite" src="${sprite(mon.species)}" alt=""></span>
-      <span class="mon-hero__num">#${String(species.id).padStart(3, '0')}</span>
-      <h2 class="mon-hero__name">${species.name}</h2>
-      <span class="mon-hero__types">${raw(species.types.map(typeTag).join(''))}</span>
-      <span class="mon-hero__sub">Nv ${mon.level} · ${where}</span>
-    </section>
+    ${raw(hero(species, `Nv ${mon.level} · ${where}`))}
 
     ${raw(buttons.length ? html`
       <div class="sheet-actions">
@@ -167,60 +140,26 @@ export async function renderMon(view, params) {
           <button class="btn btn--block${primary ? ' btn--primary' : ''}" type="button" data-act="${act}">${label}</button>`).join(''))}
       </div>` : '')}
 
-    <section class="sec">
-      <h2 class="section-title">Status no Nv ${mon.level}</h2>
-      <div class="card card__pad">
-        <ul class="statlist">
-          ${raw(STATS.map(([k, label]) => html`
-            <li class="mon-stat">
-              <span class="mon-stat__label">${label}</span>
-              <span class="mon-stat__value">${info.stats[k]}</span>
-              <span class="mon-stat__bar"><span style="width:${Math.min(100, Math.round((species.stats[k] / 180) * 100))}%"></span></span>
-              <span class="mon-stat__base">${species.stats[k]}</span>
-            </li>`).join(''))}
-        </ul>
-        <p class="hint">A barra e o número da direita são a base da espécie (total ${total}). IV 31, sem EV, natureza neutra.</p>
-      </div>
-    </section>
+    ${raw(statsCard(`Status no Nv ${mon.level}`, info.stats, species.stats))}
 
     <section class="sec">
       <h2 class="section-title">Golpes</h2>
       <ul class="moves">${raw(info.moves.map(moveCard).join(''))}</ul>
-      ${raw(info.moves.some((m) => !m.power) ? html`<p class="hint">Golpe sem poder ainda não faz nada na batalha.</p>` : '')}
     </section>
 
-    ${raw(info.upcoming.length ? html`
-      <section class="sec">
-        <h2 class="section-title">Próximos golpes</h2>
-        <ul class="moves">${raw(info.upcoming.map((m) => html`
-          <li class="move move--next">
-            <span class="move__level">Nv ${m.level}</span>
-            <span class="grow"><strong>${m.name}</strong><br>
-              <span class="move__sub">${CLASSES[m.class] ?? m.class} · Poder ${dash(m.power)}</span></span>
-            ${raw(typeTag(m.type))}
-          </li>`).join(''))}</ul>
-        <p class="hint">Fica com os 4 últimos aprendidos: o mais antigo sai.</p>
-      </section>` : '')}
+    ${raw(learnList('Próximos golpes', info.upcoming))}
 
     <section class="sec">
       <h2 class="section-title">Evolução</h2>
-      ${raw(evo ? html`
-        <div class="evo card card__pad">
-          <span class="evo__pic"><img class="sprite" src="${sprite(evo.to)}" alt="" loading="lazy"></span>
-          <span class="grow"><strong>${dex.byId.get(evo.to).name}</strong><br>
-            <span class="hint">no Nv ${evo.level}${evo.level > mon.level ? ` · faltam ${evo.level - mon.level}` : ''}</span></span>
-        </div>` : html`<p class="hint">Não evolui por nível.</p>`)}
+      ${raw(evo
+        ? evoRow(evo.to, dex.byId.get(evo.to).name,
+          `no Nv ${evo.level}${evo.level > mon.level ? ` · faltam ${evo.level - mon.level}` : ''}`)
+        : html`<p class="hint">Não evolui por nível.</p>`)}
     </section>
 
-    <section class="sec">
-      <h2 class="section-title">Tipos contra ele</h2>
-      <div class="card card__pad stack">
-        ${raw(group('Fraco a', byFactor((x) => x > 1)))}
-        ${raw(group('Resiste a', byFactor((x) => x > 0 && x < 1)))}
-        ${raw(group('Imune a', byFactor((x) => x === 0)))}
-      </div>
-    </section>
+    ${raw(matchupsCard(info.matchups))}
   `;
+  window.scrollTo(0, 0);
 
   const actions = actionsFor(ctx);
   view.onclick = (e) => {
