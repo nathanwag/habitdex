@@ -175,7 +175,7 @@ function goalCard(dex, state, list, progress, attack) {
     sub = 'Sem hábitos agendados hoje.';
   } else if (met) {
     title = 'Meta batida!';
-    sub = `${name} subiu pro Nv ${me.level} · +1 doce`;
+    sub = `${name} subiu pro Nv ${me.level} · +1 doce${state.metStreak % 7 === 0 ? ' · +1 Pedra da Evolução' : ''}`;
   } else {
     title = html`${done} de ${list.length} · falta <b>${missing}</b>`;
     sub = `Na meta: ${name} Nv ${me.level + 1}, +1 doce e um selvagem aparece`;

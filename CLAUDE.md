@@ -41,7 +41,7 @@ então decidir como o jogo funciona (ritmo de XP, escala de nível entre
 regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 
 - **Escolhas do jogo ficam no store `events`** (DB versão 2): `start`,
-  `catch` e `battle`, com o resultado já sorteado. A meta do dia é o ajuste
+  `catch`, `battle`, `candy`, `stone` e `party`, com o resultado já sorteado. A meta do dia é o ajuste
   `goal` (0 a 1). "Recomeçar o jogo" em Ajustes apaga os eventos; hábitos e
   checks ficam.
 - **`www/js/pokemon.js`** carrega `www/data/*.json` uma vez (estão no
@@ -74,8 +74,13 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   (`goal`, 0 a 1) sobe o time (até 6) 1 nível na hora; na virada ainda dá 1
   Pokébola, e dia abaixo da meta tira 1 nível do time (mínimo 1, sem
   desevoluir). A caixa fica congelada. Quem foi pego no dia não sobe nele.
-  Evolução só por nível puro. Todo pokémon novo (inicial ou capturado) entra
-  no nível 1; começa com 5 Pokébolas.
+  Sozinha, só a evolução por nível puro (`byLevel`). Todo pokémon novo
+  (inicial ou capturado) entra no nível 1; começa com 5 Pokébolas.
+- **Pedra da Evolução:** cada 7 dias seguidos na meta (`metStreak`, zera
+  na virada de um dia abaixo dela) dá 1 pedra (`stones`), já no 7º dia. O
+  evento `stone` (`uid`, `to`) evolui qualquer pokémon, do time ou da caixa,
+  para uma das suas evoluções que não são por nível (`stoneEvolutions`:
+  pedra, troca, amizade...); sem pedra ou destino inválido, é ignorado.
 - **Doce Raro e time:** cada dia na meta dá 1 doce (já no dia). O doce (`candy`
   com `uid`) sobe 1 nível de quem está abaixo do mais alto do time, até empatar;
   sem doce ou no mais alto, o evento é ignorado. `party` (`uids`, até 6, o
@@ -86,7 +91,7 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   geração da região. Assim os níveis
   originais de cada liga continuam valendo.
 - **O selvagem do dia sai de um sorteio pela data** (`seeded`): o mesmo em
-  qualquer recálculo. Forma básica da geração da região, sem lendário/mítico,
+  qualquer recálculo. Forma básica da geração da região, lendários e míticos inclusive,
   com sprite e **nunca quem já foi capturado** (o inicial e as evoluções
   inclusive; o que escapou volta). O pego hoje continua sendo o selvagem de
   hoje (`caughtToday`). Com todos pegos, `wild` é `null` e o Hoje não mostra

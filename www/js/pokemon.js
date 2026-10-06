@@ -2,7 +2,7 @@
  * estado pelo game.js e da os nomes e sprites. */
 
 import * as db from './db.js';
-import { play } from './game.js';
+import { play, byLevel } from './game.js';
 
 let dexPromise = null;
 
@@ -56,8 +56,7 @@ export const startersOf = (gen) => STARTERS.slice((gen - 1) * 3, gen * 3);
 
 /** A proxima evolucao por nivel, se houver: { to, level }. */
 export function nextEvolution(dex, species) {
-  return dex.byId.get(species).evolutions
-    .find((e) => e.trigger === 'level-up' && e.level && Object.keys(e).length === 3) ?? null;
+  return dex.byId.get(species).evolutions.find(byLevel) ?? null;
 }
 
 /* Icones do jogo. As metades da bola tem stroke="none" porque o CSS global
@@ -65,5 +64,7 @@ export function nextEvolution(dex, species) {
 export const ball = (size = 36) => `<svg class="ball-svg" width="${size}" height="${size}" viewBox="0 0 40 40" aria-hidden="true"><path d="M3 20a17 17 0 0 1 34 0z" fill="#ee4035" stroke="none"/><path d="M3 20a17 17 0 0 0 34 0z" fill="#fff" stroke="none"/><circle cx="20" cy="20" r="17" fill="none" stroke="#1f2a3a" stroke-width="3"/><path d="M3 20h34" stroke="#1f2a3a" stroke-width="3"/><circle cx="20" cy="20" r="5.5" fill="#fff" stroke="#1f2a3a" stroke-width="3"/></svg>`;
 
 export const emptyBall = (size = 36) => `<svg class="ball-svg" width="${size}" height="${size}" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="var(--bg)" stroke="var(--ball-empty)" stroke-width="3"/><path d="M3 20h34" stroke="var(--ball-empty)" stroke-width="3"/><circle cx="20" cy="20" r="5.5" fill="var(--surface)" stroke="var(--ball-empty)" stroke-width="3"/></svg>`;
+
+export const stone = (size = 20) => `<svg class="stone-svg" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 6-3 13H7L4 8z" fill="#5fd0b0" stroke="#1d6b57" stroke-width="1.5" stroke-linejoin="round"/><path d="M4 8h16M12 2l-3 6 3 13 3-13z" fill="none" stroke="#1d6b57" stroke-width="1" stroke-linejoin="round"/></svg>`;
 
 export const candy = (size = 20) => `<svg class="candy-svg" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true"><path d="M1 8l6 4-6 4z" fill="#8a5cf6" stroke="none"/><path d="M23 8l-6 4 6 4z" fill="#8a5cf6" stroke="none"/><circle cx="12" cy="12" r="6" fill="#c4a8ff" stroke="#4b2a99" stroke-width="1.5"/></svg>`;

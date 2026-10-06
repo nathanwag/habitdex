@@ -74,14 +74,15 @@ test('comeca com 5 Pokebolas e ganha uma a cada dia que fecha na meta', () => {
   assert.equal(state.balls, 6);
 });
 
-test('o selvagem do dia e sempre o mesmo naquela data e e uma forma basica da geracao, sem lendario', () => {
+test('o selvagem do dia e sempre o mesmo naquela data e e uma forma basica da geracao, lendarios inclusive', () => {
   const wider = {
     ...dex,
     pokemon: [...dex.pokemon,
-      species(150, 'Mewtwo', { legendary: true }),
+      species(150, 'Mewtwo', { legendary: true, capture: 3 }),
+      species(151, 'Mew', { mythical: true, capture: 45 }),
       species(19, 'Rattata'),
       species(906, 'Sprigatito', { gen: 9 })],
-    sprites: [...dex.sprites, 150, 906], // Rattata sem sprite
+    sprites: [...dex.sprites, 150, 151, 906], // Rattata sem sprite
   };
   const seen = new Set();
   for (let i = 1; i <= 28; i++) {
@@ -92,7 +93,7 @@ test('o selvagem do dia e sempre o mesmo naquela data e e uma forma basica da ge
     seen.add(wild.species);
   }
   // O Charmander e o inicial: ja capturado, nao aparece.
-  assert.deepEqual([...seen].sort((a, b) => a - b), [16]);
+  assert.deepEqual([...seen].sort((a, b) => a - b), [16, 150, 151]);
 });
 
 test('o selvagem nunca e quem voce ja capturou; o que escapou pode voltar', () => {
@@ -318,4 +319,47 @@ test('o desafio traz todos os passos da regiao, com o time de cada chefe ja na v
   assert.equal(challenge.current, 0);
   // Charmander: o Blue leva o Blastoise.
   assert.deepEqual(challenge.steps[3].team.map((p) => p.species), [18, 9]);
+});
+
+test('cada 7 dias seguidos na meta dao uma Pedra da Evolucao, ja no setimo; dia abaixo da meta zera a contagem', () => {
+  const stones = (checks, today = '2026-10-14') => play(started('2026-10-01', { checks, today }), dex).stones;
+  assert.equal(stones([]), 0);
+  // 01 a 06: seis dias seguidos, ainda nao.
+  assert.equal(stones(everyDay('2026-10-01', '2026-10-06')), 0);
+  // 01 a 07: a pedra vem no setimo, na hora.
+  assert.equal(stones(everyDay('2026-10-01', '2026-10-07'), '2026-10-07'), 1);
+  // 01 a 14: duas.
+  assert.equal(stones(everyDay('2026-10-01', '2026-10-14')), 2);
+  // 01 a 05, falha no 06, 07 a 13 (sete de novo): so a segunda sequencia conta.
+  assert.equal(stones([...everyDay('2026-10-01', '2026-10-05'), ...everyDay('2026-10-07', '2026-10-13')]), 1);
+  assert.equal(play(started('2026-10-01', { checks: everyDay('2026-10-01', '2026-10-09'), today: '2026-10-09' }), dex).metStreak, 9);
+});
+
+test('a Pedra evolui qualquer pokemon que evolui por pedra, troca ou amizade, para a evolucao escolhida', () => {
+  const stoneDex = {
+    ...dex,
+    pokemon: [...dex.pokemon,
+      species(133, 'Eevee', {
+        evolutions: [{ to: 134, trigger: 'use-item', item: 'water-stone' }, { to: 196, trigger: 'level-up', happiness: 160 }],
+      }),
+      species(134, 'Vaporeon', { evolvesFrom: 133 }), species(196, 'Espeon', { evolvesFrom: 133 })],
+  };
+  const week = everyDay('2026-10-01', '2026-10-07');
+  const withEevee = (stoneEvents, starter = 133) => play(started('2026-10-01', {
+    today: '2026-10-07',
+    checks: week,
+    events: [{ type: 'start', day: '2026-10-01', species: starter }, ...stoneEvents],
+  }), stoneDex);
+  const use = (to, day = '2026-10-07') => ({ type: 'stone', day, uid: 1, to });
+
+  const espeon = withEevee([use(196)]);
+  assert.deepEqual([espeon.party[0].species, espeon.stones], [196, 0]);
+  assert.ok(espeon.caught.includes(196));
+  // Sem pedra ainda (dia 6), nao evolui.
+  assert.equal(withEevee([use(134, '2026-10-06')]).party[0].species, 133);
+  // So uma pedra: a segunda tentativa e ignorada.
+  assert.deepEqual(withEevee([use(134), { ...use(134), uid: 1 }]).party[0].species, 134);
+  // Evolucao por nivel nao vale pedra (Charmander -> Charmeleon), nem especie que nao e evolucao dele.
+  assert.deepEqual([withEevee([use(5)], 4).party[0].species, withEevee([use(5)], 4).stones], [4, 1]);
+  assert.equal(withEevee([use(16)]).party[0].species, 133);
 });

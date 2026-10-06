@@ -1,11 +1,12 @@
 /* Time — os ate 6 do time numa grade de 3 (o primeiro e o principal), a caixa
  * (congelada) e o Hall da Fama. Tocar num pokemon abre a ficha dele
- * (#/pokemon?uid=), onde ficam as acoes: principal, caixa e Doce Raro. */
+ * (#/pokemon?uid=), onde ficam as acoes: principal, caixa, Doce Raro e Pedra. */
 
 import * as db from '../db.js';
 import {
-  game, sprite, nextEvolution, candy,
+  game, sprite, nextEvolution, candy, stone,
 } from '../pokemon.js';
+import { stoneEvolutions } from '../game.js';
 import { summary } from '../battle.js';
 import {
   hero, statsCard, moveCard, learnList, matchupsCard, evoRow,
@@ -28,6 +29,7 @@ function actionsFor({ dex, state, today }) {
   };
   return {
     candy: (m) => save({ type: 'candy', uid: m.uid }, `${name(m)} subiu para o nível ${m.level + 1}!`),
+    stone: (m, to) => save({ type: 'stone', uid: m.uid, to }, `${name(m)} evoluiu para ${dex.byId.get(to).name}!`),
     lead: (m) => save({ type: 'party', uids: [m.uid, ...uids.filter((u) => u !== m.uid)] }, `${name(m)} agora é o principal`),
     out: (m) => save({ type: 'party', uids: uids.filter((u) => u !== m.uid) }, `${name(m)} foi para a caixa`),
     in: (m) => save({ type: 'party', uids: [...uids, m.uid] }, `${name(m)} entrou no time`),
@@ -46,21 +48,33 @@ export async function render(view) {
     view.innerHTML = html`<a class="btn btn--primary btn--block" href="#/">Escolha seu inicial no Hoje</a>`;
     return;
   }
-  const { party, box, candies } = state;
+  const { party, box, candies, stones } = state;
   const name = (m) => dex.byId.get(m.species).name;
   const canCandy = canCandyOf(state);
   const free = PARTY_SIZE - party.length;
 
   setTop({
     title: 'Time',
-    actions: html`<button class="pill pill--candy" type="button" id="candy-info">${raw(candy(20))}${candies}</button>`,
+    actions: html`<span class="pills">
+      <button class="pill pill--stone" type="button" data-item="stone" aria-label="${stones} Pedras da Evolução">${raw(stone(20))}${stones}</button>
+      <button class="pill pill--candy" type="button" data-item="candy" aria-label="${candies} Doces Raros">${raw(candy(20))}${candies}</button>
+    </span>`,
   });
-  document.getElementById('candy-info').onclick = () => openSheet('Doce Raro', node(html`
-    <div class="candy-info">
-      ${raw(candy(48))}
-      <p><strong>Você tem ${candies}.</strong> Ganha 1 por dia na meta.</p>
-      <p class="hint">Sobe 1 nível de quem está abaixo do mais alto do time. Use na ficha do pokémon.</p>
-    </div>`));
+  const sheets = {
+    candy: () => openSheet('Doce Raro', node(html`
+      <div class="candy-info">
+        ${raw(candy(48))}
+        <p><strong>Você tem ${candies}.</strong> Ganha 1 por dia na meta.</p>
+        <p class="hint">Sobe 1 nível de quem está abaixo do mais alto do time. Use na ficha do pokémon.</p>
+      </div>`)),
+    stone: () => openSheet('Pedra da Evolução', node(html`
+      <div class="candy-info">
+        ${raw(stone(48))}
+        <p><strong>Você tem ${stones}.</strong> Ganha 1 a cada 7 dias seguidos na meta (agora: ${state.metStreak % 7} de 7).</p>
+        <p class="hint">Evolui quem evolui por pedra, troca ou amizade, para a forma que você escolher. Use na ficha do pokémon.</p>
+      </div>`)),
+  };
+  document.querySelectorAll('[data-item]').forEach((btn) => { btn.onclick = sheets[btn.dataset.item]; });
 
   view.innerHTML = html`
     <ul class="party">
@@ -130,14 +144,17 @@ export async function renderMon(view, params) {
     ...(slot === -1 && party.length < 6 ? [['in', 'Trazer para o time', true]] : []),
     ...(canCandyOf(state)(mon) ? [['candy', `Usar doce (Nv ${mon.level} → ${mon.level + 1})`]] : []),
   ];
+  const byStone = stoneEvolutions(species);
 
   view.innerHTML = html`
     ${raw(hero(species, `Nv ${mon.level} · ${where}`))}
 
-    ${raw(buttons.length ? html`
+    ${raw(buttons.length || (state.stones > 0 && byStone.length) ? html`
       <div class="sheet-actions">
         ${raw(buttons.map(([act, label, primary]) => html`
           <button class="btn btn--block${primary ? ' btn--primary' : ''}" type="button" data-act="${act}">${label}</button>`).join(''))}
+        ${raw(state.stones > 0 ? byStone.map((e) => html`
+          <button class="btn btn--block" type="button" data-act="stone" data-to="${e.to}">${raw(stone(18))} Evoluir para ${dex.byId.get(e.to).name}</button>`).join('') : '')}
       </div>` : '')}
 
     ${raw(statsCard(`Status no Nv ${mon.level}`, info.stats, species.stats))}
@@ -151,10 +168,12 @@ export async function renderMon(view, params) {
 
     <section class="sec">
       <h2 class="section-title">Evolução</h2>
-      ${raw(evo
-        ? evoRow(evo.to, dex.byId.get(evo.to).name,
-          `no Nv ${evo.level}${evo.level > mon.level ? ` · faltam ${evo.level - mon.level}` : ''}`)
-        : html`<p class="hint">Não evolui por nível.</p>`)}
+      <div class="stack">
+        ${raw(evo ? evoRow(evo.to, dex.byId.get(evo.to).name,
+    `no Nv ${evo.level}${evo.level > mon.level ? ` · faltam ${evo.level - mon.level}` : ''}`) : '')}
+        ${raw(byStone.map((e) => evoRow(e.to, dex.byId.get(e.to).name, 'com a Pedra da Evolução')).join(''))}
+        ${raw(!evo && !byStone.length ? html`<p class="hint">Não evolui.</p>` : '')}
+      </div>
     </section>
 
     ${raw(matchupsCard(info.matchups))}
@@ -166,6 +185,6 @@ export async function renderMon(view, params) {
     const btn = e.target.closest('[data-act]');
     if (!btn || btn.disabled) return;
     btn.disabled = true;
-    actions[btn.dataset.act](mon);
+    actions[btn.dataset.act](mon, Number(btn.dataset.to));
   };
 }

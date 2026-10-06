@@ -4,6 +4,7 @@
 
 import { game, sprite, ball } from '../pokemon.js';
 import { summary } from '../battle.js';
+import { byLevel } from '../game.js';
 import {
   hero, statsCard, learnList, matchupsCard, evoRow,
 } from './mon-parts.js';
@@ -98,8 +99,13 @@ const title = (slug) => slug.split('-').map((w) => w[0].toUpperCase() + w.slice(
 const TIMES = { day: 'de dia', night: 'à noite' };
 const TRIGGERS = { trade: 'Troca' };
 
-// Condicao de uma evolucao. So o nivel puro vale no jogo por enquanto.
+// Condicao de uma evolucao. No jogo, so o nivel puro acontece sozinho; o
+// resto pede a Pedra da Evolucao (a condicao original fica entre parenteses).
 function evoWhen(e) {
+  if (!byLevel(e)) return `Pedra da Evolução (${originalWhen(e)})`;
+  return originalWhen(e);
+}
+function originalWhen(e) {
   const parts = [];
   if (e.level) parts.push(`Nv ${e.level}`);
   if (e.item) parts.push(title(e.item));
@@ -108,7 +114,6 @@ function evoWhen(e) {
   if (!parts.length) parts.push(TRIGGERS[e.trigger] ?? title(e.trigger));
   return parts.join(', ');
 }
-const byLevel = (e) => e.trigger === 'level-up' && e.level && Object.keys(e).length === 3;
 
 export async function renderSpecies(view, params) {
   setTop({ title: 'Pokédex', back: '#/pokedex' });
@@ -147,7 +152,7 @@ export async function renderSpecies(view, params) {
         <div class="stack">
           ${raw(from ? evoRow(from.id, from.name, 'forma anterior', { href: link(from.id) }) : '')}
           ${raw(species.evolutions.map((e) => evoRow(e.to, dex.byId.get(e.to).name, evoWhen(e),
-    { href: link(e.to), inert: !byLevel(e) })).join(''))}
+    { href: link(e.to) })).join(''))}
         </div>
       </section>` : '')}
 

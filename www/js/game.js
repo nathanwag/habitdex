@@ -10,6 +10,7 @@ import { addDays } from './reminder.js';
 const START_LEVEL = 1;
 const START_BALLS = 5;
 const PARTY_SIZE = 6;
+const STONE_STREAK = 7;
 
 // Sorteio que depende so da data: o selvagem de um dia e sempre o mesmo,
 // em qualquer aparelho e a cada recalculo. FNV-1a + um passo do mulberry32.
@@ -20,6 +21,14 @@ function seeded(text) {
   h ^= h + Math.imul(h ^ (h >>> 7), h | 61);
   return ((h ^ (h >>> 14)) >>> 0) / 2 ** 32;
 }
+
+// Evolucao por nivel puro (sem horario, item ou outra condicao): acontece
+// sozinha ao subir de nivel. Todas as outras (pedra, troca, amizade...) so
+// com a Pedra da Evolucao, para a que o jogador escolher.
+export const byLevel = (e) => e.trigger === 'level-up' && e.level && Object.keys(e).length === 3;
+
+/** As evolucoes da especie que pedem a Pedra da Evolucao. */
+export const stoneEvolutions = (species) => species.evolutions.filter((e) => !byLevel(e));
 
 export function play(input, dex) {
   const start = input.events.find((e) => e.type === 'start');
@@ -32,6 +41,9 @@ export function play(input, dex) {
   let nextUid = 1;
   let balls = START_BALLS;
   let candies = 0;
+  // Dias seguidos na meta (hoje entra quando bate); a cada 7, uma Pedra.
+  let metStreak = 0;
+  let stones = 0;
   let lastDay = null;
   const caught = new Set();
   // Pegos hoje: continuam podendo ser o selvagem de hoje (o que acabou de ser
@@ -51,10 +63,8 @@ export function play(input, dex) {
   const avgLevel = () => Math.round(party.reduce((s, m) => s + m.level, 0) / party.length);
   const progressOf = (day) => dayProgress(todayList(input.habits, input.checks, day));
 
-  // So a evolucao por nivel puro; pedra, amizade e troca ficam para depois.
   const evolve = (mon) => {
-    const next = byId.get(mon.species).evolutions.find((e) => e.trigger === 'level-up'
-      && e.level && Object.keys(e).length === 3 && mon.level >= e.level);
+    const next = byId.get(mon.species).evolutions.find((e) => byLevel(e) && mon.level >= e.level);
     if (!next) return;
     mon.species = next.to;
     caught.add(mon.species);
@@ -68,6 +78,8 @@ export function play(input, dex) {
     const progress = progressOf(day);
     if (progress === null || progress < input.goal) return;
     candies++;
+    metStreak++;
+    if (metStreak % STONE_STREAK === 0) stones++;
     // Quem foi pego hoje entra no nivel da captura: a meta ja estava batida.
     for (const mon of party.filter((m) => m.caughtOn !== day)) {
       mon.level = Math.min(100, mon.level + 1);
@@ -79,6 +91,7 @@ export function play(input, dex) {
     if (progress === null) return;
     lastDay = { day, progress, met: progress >= input.goal };
     if (lastDay.met) { balls++; return; }
+    metStreak = 0;
     // A caixa fica congelada: so o time sobe e cai.
     for (const mon of party) mon.level = Math.max(1, mon.level - 1);
   };
@@ -104,6 +117,17 @@ export function play(input, dex) {
     if (candies <= 0 || !mon || mon.level >= top) return;
     candies--;
     mon.level++;
+    evolve(mon);
+  };
+
+  // Pedra da Evolucao: qualquer pokemon (time ou caixa) para uma das suas
+  // evolucoes que nao sao por nivel. Sem pedra ou destino invalido, ignorado.
+  const useStone = (e) => {
+    const mon = [...party, ...box].find((m) => m.uid === e.uid);
+    if (stones <= 0 || !mon || !stoneEvolutions(byId.get(mon.species)).some((x) => x.to === e.to)) return;
+    stones--;
+    mon.species = e.to;
+    caught.add(mon.species);
     evolve(mon);
   };
 
@@ -146,14 +170,14 @@ export function play(input, dex) {
   };
 
   // Selvagens: formas basicas da geracao da regiao atual (as regioes estao
-  // na ordem das geracoes), sem lendarios e miticos, so quem tem sprite e
-  // nunca quem ja foi capturado. Sem ninguem para pegar, nao aparece selvagem.
+  // na ordem das geracoes), lendarios e miticos inclusive, so quem tem
+  // sprite e nunca quem ja foi capturado. Sem ninguem para pegar, nao aparece selvagem.
   const sprites = new Set(dex.sprites);
   const pools = new Map();
   const wildOf = (day) => {
     const gen = regions.length ? Math.min(region, regions.length - 1) + 1 : 1;
     if (!pools.has(gen)) {
-      pools.set(gen, dex.pokemon.filter((p) => p.gen === gen && !p.legendary && !p.mythical
+      pools.set(gen, dex.pokemon.filter((p) => p.gen === gen
         && p.evolvesFrom === null && sprites.has(p.id)));
     }
     const pool = pools.get(gen).filter((p) => !caught.has(p.id) || caughtToday.has(p.id));
@@ -172,8 +196,12 @@ export function play(input, dex) {
     const wild = party.length ? wildOf(day) : null;
     if (wild) seen.add(wild.id);
     levelUp(day);
-    // Doce depois da subida do dia: o doce de hoje ja pode ser usado hoje.
-    for (const e of input.events) if (e.type === 'candy' && e.day === day) useCandy(e);
+    // Doce e pedra depois da subida do dia: os ganhos hoje ja valem hoje.
+    for (const e of input.events) {
+      if (e.day !== day) continue;
+      if (e.type === 'candy') useCandy(e);
+      if (e.type === 'stone') useStone(e);
+    }
     if (day < input.today) turnover(day);
   }
 
@@ -196,7 +224,7 @@ export function play(input, dex) {
 
   const sorted = (set) => [...set].sort((a, b) => a - b);
   const result = {
-    started: true, party: plain(party), box: plain(box), hall, balls, candies, challenge, lastDay,
+    started: true, party: plain(party), box: plain(box), hall, balls, candies, stones, metStreak, challenge, lastDay,
     caught: sorted(caught), seen: sorted(new Set([...seen, ...caught])),
     wild: null, needsStarter: null,
   };

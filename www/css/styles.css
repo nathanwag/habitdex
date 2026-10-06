@@ -35,6 +35,8 @@
   --candy: #8a5cf6;
   --candy-soft: #efe6ff;
   --candy-ink: #4b2a99;
+  --stone-soft: #dcf5ec;
+  --stone-ink: #1d6b57;
   --grass: #d4efc0;
   --grass-2: #b5df98;
   --ball-empty: #b9c5d4;
@@ -74,6 +76,8 @@
     --on-accent: #1a0806;
     --candy-soft: #2c2346;
     --candy-ink: #d4c2ff;
+    --stone-soft: #1d3a32;
+    --stone-ink: #9be8cf;
     --grass: #24382a;
     --grass-2: #2f4a35;
     --ball-empty: #4a5872;
@@ -615,6 +619,8 @@ button.cell { cursor: pointer; }
   color: var(--text);
 }
 .pill--candy { background: var(--candy-soft); color: var(--candy-ink); box-shadow: none; }
+.pill--stone { background: var(--stone-soft); color: var(--stone-ink); box-shadow: none; }
+.pills { display: flex; gap: 8px; }
 
 .banner { padding: 12px 14px; border-radius: var(--radius-sm); font-size: var(--fs-sm); font-weight: 700; }
 .banner--good { background: #e3f4dc; color: #24561f; }
