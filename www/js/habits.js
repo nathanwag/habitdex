@@ -64,6 +64,11 @@ export function dayProgress(list) {
   return counted.length ? counted.filter((i) => i.done).length / counted.length : 1;
 }
 
+// Comeco do habito para sequencia, recorde e calendario: a criacao no app ou
+// o primeiro dia marcado antes dela (um habito que ja se fazia antes). O jogo
+// nao usa isto: conta o habito so a partir das versoes (asOf).
+const startOf = (habit, mine) => mine.reduce((first, c) => (c.day < first ? c.day : first), habit.createdDay);
+
 /** Sequencia ate `today`: dias agendados seguidos com o habito feito (dias
  *  fora da agenda sao pulados), ou semanas seguidas com a meta batida no
  *  semanal. Hoje, ou a semana atual, ainda incompleto nao quebra: nao acabou. */
@@ -85,13 +90,13 @@ export function bestStreak(habit, checks, today) {
     const perWeek = new Map();
     for (const c of mine) perWeek.set(weekOf(c.day), (perWeek.get(weekOf(c.day)) || 0) + 1);
     const current = weekOf(today);
-    for (let week = weekOf(habit.createdDay); week <= current; week = addDays(week, 7)) {
+    for (let week = weekOf(startOf(habit, mine)); week <= current; week = addDays(week, 7)) {
       step((perWeek.get(week) || 0) >= habit.schedule.times, week === current);
     }
     return best;
   }
   const done = new Set(mine.map((c) => c.day));
-  for (let day = habit.createdDay; day <= today; day = addDays(day, 1)) {
+  for (let day = startOf(habit, mine); day <= today; day = addDays(day, 1)) {
     if (isScheduled(habit, day)) step(done.has(day), day === today);
   }
   return best;
@@ -100,7 +105,7 @@ export function bestStreak(habit, checks, today) {
 function dayStreak(habit, checks, today) {
   const done = new Set(checks.map((c) => c.day));
   let count = 0;
-  for (let day = today; day >= habit.createdDay; day = addDays(day, -1)) {
+  for (let day = today; day >= startOf(habit, checks); day = addDays(day, -1)) {
     if (!isScheduled(habit, day)) continue;
     if (done.has(day)) count++;
     else if (day !== today) break;
@@ -113,16 +118,16 @@ function weekStreak(habit, checks, today) {
   for (const c of checks) perWeek.set(weekOf(c.day), (perWeek.get(weekOf(c.day)) || 0) + 1);
   const current = weekOf(today);
   let count = 0;
-  for (let week = current; week >= weekOf(habit.createdDay); week = addDays(week, -7)) {
+  for (let week = current; week >= weekOf(startOf(habit, checks)); week = addDays(week, -7)) {
     if ((perWeek.get(week) || 0) >= habit.schedule.times) count++;
     else if (week !== current) break;
   }
   return count;
 }
 
-function dayState(habit, done, day, today) {
+function dayState(habit, start, done, day, today) {
   if (day > today) return 'future';
-  if (day < habit.createdDay) return 'before';
+  if (day < start) return 'before';
   if (done.has(day)) return 'done';
   if (day === today) return isScheduled(habit, day) ? 'open' : 'off';
   // No semanal, um dia vazio nao e falta: a conta e da semana.
@@ -134,7 +139,9 @@ function dayState(habit, done, day, today) {
  *  cobrar): sobre os dias agendados que ja acabaram, ou sobre as semanas no
  *  semanal, com `count` e `met` por semana. */
 export function habitHistory(habit, checks, today, weeks) {
-  const done = new Set(checks.filter((c) => c.habitId === habit.id).map((c) => c.day));
+  const mine = checks.filter((c) => c.habitId === habit.id);
+  const begin = startOf(habit, mine);
+  const done = new Set(mine.map((c) => c.day));
   const weekly = habit.schedule.kind === 'weekly';
   const current = weekOf(today);
   const first = addDays(current, -7 * (weeks - 1));
@@ -144,7 +151,7 @@ export function habitHistory(habit, checks, today, weeks) {
     const days = [];
     for (let i = 0; i < 7; i++) {
       const day = addDays(start, i);
-      days.push({ day, state: dayState(habit, done, day, today) });
+      days.push({ day, state: dayState(habit, begin, done, day, today) });
     }
     const count = days.filter((d) => d.state === 'done').length;
     grid.push({ start, days, count, met: weekly ? count >= habit.schedule.times : null });
@@ -153,7 +160,7 @@ export function habitHistory(habit, checks, today, weeks) {
   let hits;
   if (weekly) {
     hits = grid
-      .filter((w) => w.start >= weekOf(habit.createdDay) && (w.start !== current || w.met))
+      .filter((w) => w.start >= weekOf(begin) && (w.start !== current || w.met))
       .map((w) => w.met);
   } else {
     hits = grid.flatMap((w) => w.days)
@@ -166,10 +173,12 @@ export function habitHistory(habit, checks, today, weeks) {
 /** Os dias do mes `month` (AAAA-MM), cada um com seu estado, e quantos
  *  foram feitos (`done`) dos que eram devidos (`due`: feitos + faltas). */
 export function monthDays(habit, checks, today, month) {
-  const doneDays = new Set(checks.filter((c) => c.habitId === habit.id).map((c) => c.day));
+  const mine = checks.filter((c) => c.habitId === habit.id);
+  const start = startOf(habit, mine);
+  const doneDays = new Set(mine.map((c) => c.day));
   const days = [];
   for (let day = `${month}-01`; day.startsWith(month); day = addDays(day, 1)) {
-    days.push({ day, state: dayState(habit, doneDays, day, today) });
+    days.push({ day, state: dayState(habit, start, doneDays, day, today) });
   }
   const done = days.filter((d) => d.state === 'done').length;
   return { days, done, due: done + days.filter((d) => d.state === 'missed').length };

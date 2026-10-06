@@ -210,3 +210,37 @@ test('o mes traz cada dia com seu estado e quantos foram feitos dos que ja eram 
   assert.deepEqual([done, due], [4, 8]);
   assert.equal(monthDays(gym, checks, '2026-09-23', '2026-02').days.length, 28);
 });
+
+test('dia marcado antes de o habito entrar no app conta na sequencia e no recorde', () => {
+  // Criado no app em 22/09, mas feito desde 18/09.
+  const h = daily(1, { createdDay: '2026-09-22' });
+  const checks = ['2026-09-18', '2026-09-19', '2026-09-20', '2026-09-21', '2026-09-22'].map((d) => check(1, d));
+  assert.equal(streak(h, checks, '2026-09-22'), 5);
+  assert.equal(bestStreak(h, checks, '2026-09-22'), 5);
+
+  const run = { ...h, schedule: { kind: 'weekly', times: 2 } };
+  const runChecks = ['2026-09-08', '2026-09-10', '2026-09-15', '2026-09-19', '2026-09-22'].map((d) => check(1, d));
+  assert.equal(streak(run, runChecks, '2026-09-22'), 2);
+  assert.equal(bestStreak(run, runChecks, '2026-09-22'), 2);
+});
+
+test('no mes, marcar um dia antes da criacao recua o comeco: dali em diante vale como os outros', () => {
+  // Criado no app em 22/09; marcado em 15 e 17/09, antes disso.
+  const h = daily(1, { createdDay: '2026-09-22' });
+  const checks = ['2026-09-15', '2026-09-17', '2026-09-22'].map((d) => check(1, d));
+  const { days, done, due } = monthDays(h, checks, '2026-09-23', '2026-09');
+  const at = (d) => days.find((x) => x.day === `2026-09-${d}`).state;
+  assert.deepEqual([at('14'), at('15'), at('16'), at('17'), at('21'), at('22')],
+    ['before', 'done', 'missed', 'done', 'missed', 'done']);
+  // Devidos ate ontem: 15 a 22 (8 dias); feitos: 3.
+  assert.deepEqual([done, due], [3, 8]);
+});
+
+test('dia marcado antes de o habito entrar no app nao entra no dia do jogo', () => {
+  // O jogo recalcula o passado: marcar o historico de um habito antigo nao pode
+  // mudar o progresso (nem os niveis) dos dias em que ele ainda nao estava no app.
+  const habits = [daily(1), daily(2, { createdDay: '2026-09-22', versions: [{ from: '2026-09-22', schedule: { kind: 'daily' }, archived: false }] })];
+  const checks = [check(2, '2026-09-20')];
+  assert.deepEqual(todayList(habits, checks, '2026-09-20').map((i) => i.habit.id), [1]);
+  assert.equal(dayProgress(todayList(habits, checks, '2026-09-20')), 0);
+});

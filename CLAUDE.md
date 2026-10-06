@@ -118,6 +118,12 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   `db.saveHabit`), e `todayList` usa a versão de cada dia: o jogo recalcula o
   passado, então criar, arquivar ou mudar um hábito não pode reescrever dias
   antigos. Hábito sem `versions` (anterior a isso) vale desde `createdDay`.
+- **Começo do hábito ≠ entrada no jogo.** Sequência, recorde, taxa e
+  calendário começam em `startOf` (`habits.js`): o menor entre `createdDay` e
+  o primeiro check. Marcar no calendário um dia antes da criação recua esse
+  começo (histórico de um hábito que já se fazia), e desmarcar desfaz; nada é
+  guardado. O jogo segue pelas `versions`, então esses dias não sobem nível.
+  Não mexa em `createdDay` para isso: hábito sem `versions` usa ele no jogo.
 - **`checks`**: `{ habitId, day, at }` com chave `[habitId, day]`, então há no
   máximo um por hábito e dia. Marcar é `put`, desmarcar é `delete`.
 - A **semana começa na segunda** (`weekOf`).
@@ -185,8 +191,9 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   desfazer/adiar depois do toque na notificação.
 - `#/habito?id=&mes=AAAA-MM` (`views/habit.js`): cabeçalho com ícone, nome e a
   Poké Bola de hoje; sequência, recorde (`bestStreak`), taxa e total numa linha;
-  e o calendário do mês (`monthDays`), com setas entre o mês da criação e o
-  atual. Tocar num dia passado marca ou desmarca.
+  e o calendário do mês (`monthDays`), com setas até o mês atual e sem limite
+  para trás. Tocar num dia passado marca ou desmarca, inclusive antes da
+  criação.
 - `#/habito/novo` e `#/habito/editar?id=` (`views/habit-form.js`): nome,
   frequência, lembrete e arquivar.
 - `#/habitos` (`views/habits.js`): todos os hábitos, ordem do Hoje e os

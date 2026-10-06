@@ -1,6 +1,7 @@
 /* Hábito — ícone e nome, marcar hoje, sequência e recorde, e o calendário
  * do mês (com setas para os anteriores). Tocar num dia passado marca ou
- * desmarca: é aqui que se completa um dia esquecido. */
+ * desmarca: é aqui que se completa um dia esquecido, ou o histórico de antes
+ * do hábito entrar no app (que conta na sequência, mas não no jogo). */
 
 import * as db from '../db.js';
 import * as push from '../push.js';
@@ -19,7 +20,7 @@ const HEAD = ['S', 'T', 'Q', 'Q', 'S', 'S', 'D'];
 const PENCIL = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>';
 
 const STATE_LABEL = {
-  done: 'feito', missed: 'não feito', off: 'fora da agenda', open: 'em aberto', before: 'antes de existir', future: '',
+  done: 'feito', missed: 'não feito', off: 'fora da agenda', open: 'em aberto', before: 'antes de começar', future: '',
 };
 
 export function scheduleText({ kind, days, times }) {
@@ -33,8 +34,9 @@ export function scheduleText({ kind, days, times }) {
 
 const pct = (rate) => (rate == null ? '–' : `${Math.round(rate * 100)}%`);
 
-// Dia passado ou hoje, com o habito ja existindo, pode ser marcado.
-const tappable = (state) => state !== 'before' && state !== 'future';
+// Dia passado ou hoje pode ser marcado; antes do comeco tambem, e ai o
+// comeco recua (startOf, em habits.js).
+const tappable = (state) => state !== 'future';
 
 // Mes AAAA-MM vizinho.
 const shiftMonth = (month, by) => {
@@ -83,11 +85,11 @@ export async function render(view, params) {
   const canToday = !habit.archived && (weekly || isScheduled(habit, today));
   const [bg, ink] = tint(habit.id);
 
-  // O mes vem do endereco (#/habito?id=&mes=AAAA-MM), entre o da criacao e o atual.
+  // O mes vem do endereco (#/habito?id=&mes=AAAA-MM), ate o atual. Para tras
+  // nao tem limite: da para marcar o que ja se fazia antes de criar o habito.
   const thisMonth = today.slice(0, 7);
-  const firstMonth = habit.createdDay.slice(0, 7);
   const asked = /^\d{4}-\d{2}$/.test(params.get('mes') ?? '') ? params.get('mes') : thisMonth;
-  const month = asked > thisMonth ? thisMonth : asked < firstMonth ? firstMonth : asked;
+  const month = asked > thisMonth ? thisMonth : asked;
   const { days, done, due } = monthDays(habit, checks, today, month);
   const go = (m) => `#/habito?id=${id}&mes=${m}`;
   const summary = weekly ? `${done} ${done === 1 ? 'vez' : 'vezes'}` : `${done} de ${due} dias`;
@@ -117,7 +119,7 @@ export async function render(view, params) {
           <span class="month-head__name">${fmtDay(`${month}-01`, { month: 'long' })} ${month.slice(0, 4)}</span>
           <span class="month-head__sub">${summary}</span>
         </span>
-        <a class="month-nav${month <= firstMonth ? ' is-off' : ''}" href="${go(shiftMonth(month, -1))}" aria-label="Mês anterior">‹</a>
+        <a class="month-nav" href="${go(shiftMonth(month, -1))}" aria-label="Mês anterior">‹</a>
         <a class="month-nav${month >= thisMonth ? ' is-off' : ''}" href="${go(shiftMonth(month, 1))}" aria-label="Próximo mês">›</a>
       </div>
       ${raw(calendar(days))}
