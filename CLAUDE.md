@@ -94,6 +94,9 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   trava aquele chefe até o dia seguinte. Vencer o campeão muda a região e a
   geração dos selvagens (índice da região + 1). O time com variante de inicial
   usa o tipo do primeiro do seu time (fogo se não for fogo, água nem grama).
+  `challenge.steps` traz todos os chefes da região atual já nessa variante, e
+  `challenge.current` é o índice do próximo; a tela não lê o `gyms.json` cru
+  para times.
 - **`www/js/battle.js`** (`createBattle`, `turn(estado, rng)`): batalha
   automática, as duas IAs escolhem o golpe de maior dano esperado. Stats com IV
   31/EV 0/neutra, dano da Gen 5, golpes do seu pokémon = 4 últimos aprendidos.
@@ -196,6 +199,9 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 - `#/time` (`views/team.js`: o time numa grade 3×2, o primeiro é o principal, e a caixa; tocar abre a ficha), `#/pokedex` (`views/pokedex.js`, sprite só de
   quem foi visto; gerações em grupos que fecham, lembrados no localStorage) e `#/ginasios` (`views/gyms.js`): as abas do jogo, na barra
   de baixo (`#tabs`, só nas telas principais).
+- `#/ginasios?regiao=` (Liga): as 9 regiões em abas no topo (abre na atual);
+  cada uma com o estojo de insígnias e a Elite Four, só com o Ás de cada chefe.
+  Na região atual vem antes o próximo desafio (só o Ás, sem o time).
 - `#/batalha` (`views/gyms.js`): a luta é sorteada inteira e gravada antes de
   animar; sair no meio não dá outra chance.
 - `#/ajustes/meta`: meta do dia; Ajustes também tem "Recomeçar o jogo".

@@ -286,3 +286,13 @@ test('voce escolhe quem fica no time e em que ordem; o resto vai para a caixa', 
   // O 7 entrou no time e subiu em 02/10; o 2 foi para a caixa e congelou.
   assert.equal(state.party[0].level, 2);
 });
+
+test('o desafio traz todos os passos da regiao, com o time de cada chefe ja na variante do seu inicial', () => {
+  const { challenge } = play(started(), leagueDex);
+  assert.deepEqual(challenge.steps.map((s) => [s.kind, s.index, s.name]), [
+    ['gym', 0, 'Brock'], ['gym', 1, 'Misty'], ['elite', 0, 'Lorelei'], ['champion', 0, 'Blue'],
+  ]);
+  assert.equal(challenge.current, 0);
+  // Charmander: o Blue leva o Blastoise.
+  assert.deepEqual(challenge.steps[3].team.map((p) => p.species), [18, 9]);
+});

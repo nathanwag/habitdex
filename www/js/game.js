@@ -172,15 +172,17 @@ export function play(input, dex) {
 
   let challenge = null;
   if (region < regions.length) {
-    const { kind, index, boss } = stepsOf(regions[region])[step];
     // O rival monta o time contra o inicial do jogador: aqui, o tipo do
     // primeiro do time (fogo, se nao for fogo, agua nem grama).
     const types = party.length ? byId.get(party[0].species).types : [];
     const starter = ['fire', 'water', 'grass'].find((t) => types.includes(t)) ?? 'fire';
-    challenge = {
-      region: regions[region].id, kind, index, name: boss.name, type: boss.type,
+    const steps = stepsOf(regions[region]).map(({ kind, index, boss }) => ({
+      kind, index, name: boss.name, type: boss.type,
       team: boss.team.filter((p) => !p.starter || p.starter === starter)
         .map(({ starter: _, ...p }) => p),
+    }));
+    challenge = {
+      region: regions[region].id, ...steps[step], steps, current: step,
       canBattle: party.length > 0 && lostOn !== input.today,
     };
   }

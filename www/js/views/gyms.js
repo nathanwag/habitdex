@@ -1,10 +1,11 @@
-/* Ginasios — a liga em sequencia, regiao por regiao, e a batalha animada. */
+/* Ginasios — a liga em sequencia, regiao por regiao, e a batalha animada. A
+ * tela da Liga tem as 9 regioes em abas no topo (#/ginasios?regiao=), e cada
+ * uma mostra o estojo de insignias e a Elite Four, com o As de cada chefe. Na
+ * regiao atual vem antes o proximo desafio. */
 
 import * as db from '../db.js';
 import { createBattle, turn } from '../battle.js';
-import {
-  game, sprite, badgesOf, TYPE_NAMES,
-} from '../pokemon.js';
+import { game, sprite, TYPE_NAMES } from '../pokemon.js';
 import {
   html, raw, setTop, buzz,
 } from '../ui.js';
@@ -12,16 +13,23 @@ import {
 const KIND = { gym: 'Ginásio', elite: 'Elite Four', champion: 'Campeão' };
 const sleep = (ms) => new Promise((r) => { setTimeout(r, ms); });
 
-const stepsOf = (r) => [
-  ...r.gyms.map((boss, index) => ({ kind: 'gym', index, boss })),
-  ...r.elite.map((boss, index) => ({ kind: 'elite', index, boss })),
-  { kind: 'champion', index: 0, boss: r.champion },
-];
-
-const topLevel = (team) => Math.max(...team.map((p) => p.level));
 const typeTag = (t) => (t ? html`<span class="type type--${t}">${TYPE_NAMES[t] ?? t}</span>` : '');
+// O As e o ultimo do time, como nos jogos.
+const aceOf = (team) => team.at(-1);
+const levelRange = (r) => {
+  const levels = [...r.gyms, ...r.elite, r.champion].flatMap((b) => b.team.map((p) => p.level));
+  return `Nv ${Math.min(...levels)}–${Math.max(...levels)}`;
+};
+// Passos de uma regiao que nao e a atual, direto do gyms.json. Na atual vale
+// `challenge.steps`, que ja tem o time na variante do seu inicial.
+const rawSteps = (r) => [
+  ...r.gyms.map((b, index) => ({ kind: 'gym', index, ...b })),
+  ...r.elite.map((b, index) => ({ kind: 'elite', index, ...b })),
+  { kind: 'champion', index: 0, ...r.champion },
+];
+const LOCK = '<svg class="lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
 
-export async function render(view) {
+export async function render(view, params) {
   setTop({ title: 'Liga' });
   const { dex, state } = await game();
   if (!state.started || state.needsStarter) {
@@ -29,64 +37,90 @@ export async function render(view) {
     return;
   }
   const ch = state.challenge;
-  if (!ch) {
-    view.innerHTML = html`<section class="card card__pad"><h2>Você venceu todas as ligas!</h2></section>`;
-    return;
-  }
-  const regionIdx = dex.regions.findIndex((r) => r.id === ch.region);
-  const region = dex.regions[regionIdx];
-  const steps = stepsOf(region);
-  const current = steps.findIndex((s) => s.kind === ch.kind && s.index === ch.index);
-  const myTop = Math.max(...state.party.map((m) => m.level));
-  const { won, total } = badgesOf(dex, ch);
+  const { regions } = dex;
+  // Sem desafio, todas as ligas foram vencidas.
+  const atIdx = ch ? regions.findIndex((r) => r.id === ch.region) : regions.length;
+  const wanted = regions.findIndex((r) => r.id === params?.get('regiao'));
+  const idx = wanted === -1 ? Math.min(atIdx, regions.length - 1) : wanted;
+  const region = regions[idx];
+  const isHere = idx === atIdx;
+  const steps = isHere ? ch.steps : rawSteps(region);
+  // Indice do proximo chefe: na regiao atual o do desafio; antes dela todos
+  // vencidos; depois, nenhum.
+  const current = isHere ? ch.current : idx < atIdx ? steps.length : -1;
+  const status = (i) => (i < current ? 'is-done' : i === current ? 'is-current' : 'is-locked');
+  const gyms = steps.filter((s) => s.kind === 'gym');
+  const league = steps.filter((s) => s.kind !== 'gym');
+  const won = Math.max(0, Math.min(current, gyms.length));
   const name = (id) => dex.byId.get(id).name;
 
+  const leader = (s) => {
+    const i = steps.indexOf(s);
+    return html`
+      <li class="leader ${status(i)}">
+        ${raw(i < current ? '<span class="leader__mark" aria-label="Vencido">✓</span>' : '')}
+        <span class="leader__pic"><img class="sprite" src="${sprite(aceOf(s.team).species)}" alt="" loading="lazy"></span>
+        <span class="leader__name">${s.name}</span>
+        ${raw(s.kind === 'gym' ? typeTag(s.type) : '')}
+      </li>`;
+  };
+
+  let next = '';
+  if (isHere) {
+    const ace = aceOf(ch.team);
+    const myTop = Math.max(...state.party.map((m) => m.level));
+    next = html`
+      <section class="next-boss">
+        <span class="next-boss__pic"><img class="sprite" src="${sprite(ace.species)}" alt=""></span>
+        <span class="grow">
+          <span class="next-boss__kicker">PRÓXIMO · ${KIND[ch.kind].toUpperCase()}${ch.kind === 'gym' ? ` ${ch.index + 1}` : ''}</span>
+          <span class="row"><span class="next-boss__name grow">${ch.name}</span>${raw(typeTag(ch.type))}</span>
+          <span class="next-boss__ace">Ás: ${name(ace.species)} · Nv ${ace.level}</span>
+          <span class="next-boss__vs">Seu mais forte: Nv ${myTop}</span>
+          ${raw(ch.canBattle
+            ? html`<a class="btn btn--primary btn--block" href="#/batalha">Desafiar</a>`
+            : html`<button class="btn btn--block" type="button" disabled>Perdeu hoje · tente amanhã</button>`)}
+        </span>
+      </section>`;
+  }
+  const sub = idx < atIdx ? 'Campeão vencido'
+    : isHere ? `${won} de ${gyms.length} insígnias`
+      : `Bloqueada · vença ${regions[idx - 1].name} antes`;
+
   view.innerHTML = html`
-    <section class="region-card">
+    <nav class="league-tabs" aria-label="Regiões">
+      ${raw(regions.map((r, i) => html`
+        <a class="league-tab${i === idx ? ' is-on' : ''}${i > atIdx ? ' is-locked' : ''}" href="#/ginasios?regiao=${r.id}"${raw(i === idx ? ' aria-current="page"' : '')}>
+          ${raw(i < atIdx ? '<span class="league-tab__done">✓</span>' : i > atIdx ? LOCK : '<span class="league-tab__here"></span>')}${r.name}
+        </a>`).join(''))}
+    </nav>
+
+    <section class="region-card${idx > atIdx ? ' is-locked' : ''}">
       <span class="grow">
         <span class="region-card__name">${region.name}</span><br>
-        <span class="region-card__sub">${region.game} · ${won} de ${total} insígnias${regionIdx ? ` · ${regionIdx} liga${regionIdx === 1 ? '' : 's'} vencida${regionIdx === 1 ? '' : 's'}` : ''}</span>
+        <span class="region-card__sub">${region.game} · ${levelRange(region)}</span><br>
+        <span class="region-card__sub">${sub}</span>
       </span>
-      <span class="row" style="gap: 4px">${raw(Array.from({ length: total }, (_, i) => `<span class="badge-hex${i < won ? ' is-won' : ''}"></span>`).join(''))}</span>
+      <span class="region-card__badges">${raw(gyms.map((_, i) => `<span class="badge-hex${i < won ? ' is-won' : ''}"></span>`).join(''))}</span>
     </section>
 
-    <section class="card challenge stack">
-      <div class="row">
-        <div class="grow">
-          <span class="challenge__kicker">PRÓXIMO · ${KIND[ch.kind].toUpperCase()}${ch.kind === 'gym' ? ` ${ch.index + 1}` : ''}</span>
-          <h2>${ch.name}</h2>
-        </div>
-        ${raw(typeTag(ch.type))}
-      </div>
-      <ul class="lineup">
-        ${raw(ch.team.map((p) => html`
-          <li><span class="lineup__pic"><img class="sprite" src="${sprite(p.species)}" alt="${name(p.species)}" loading="lazy"></span>
-            Nv ${p.level}</li>`).join(''))}
-      </ul>
-      <p class="hint">O mais forte dele é nível ${topLevel(ch.team)}; o seu, ${myTop}. A luta é automática.</p>
-      ${raw(ch.canBattle
-        ? html`<a class="btn btn--primary btn--block btn--lg" href="#/batalha">Desafiar</a>`
-        : html`<button class="btn btn--block btn--lg" type="button" disabled>Perdeu hoje · tente amanhã</button>`)}
+    ${raw(next)}
+
+    <section class="sec">
+      <h2 class="section-title">Ginásios</h2>
+      <ul class="leaders" style="--cols: ${gyms.length > 8 ? 5 : 4}">${raw(gyms.map(leader).join(''))}</ul>
     </section>
 
     <section class="sec">
-      <h2 class="section-title">Caminho até o campeão</h2>
-      <ol class="ladder">
-        ${raw(steps.map((s, i) => {
-          const ace = s.boss.team.at(-1);
-          const status = i < current ? 'is-done' : i === current ? 'is-current' : 'is-locked';
-          return html`
-            <li class="ladder__row ${status}">
-              <span class="ladder__pic"><img class="sprite" src="${sprite(ace.species)}" alt="" loading="lazy"></span>
-              <span class="grow"><strong>${s.boss.name}</strong>
-                <span>${KIND[s.kind]} · até nível ${topLevel(s.boss.team)}</span></span>
-              ${raw(typeTag(s.boss.type))}
-              <span class="ladder__mark" aria-label="${i < current ? 'Vencido' : i === current ? 'Próximo' : 'Bloqueado'}">${i < current ? '✓' : ''}</span>
-            </li>`;
-        }).join(''))}
-      </ol>
+      <h2 class="section-title">Liga Pokémon</h2>
+      <ul class="leaders" style="--cols: ${league.length}">${raw(league.map(leader).join(''))}</ul>
     </section>
   `;
+
+  // A aba escolhida fica a vista na barra de regioes.
+  const tabs = view.querySelector('.league-tabs');
+  const on = tabs.querySelector('.is-on');
+  tabs.scrollLeft = on.offsetLeft - tabs.offsetLeft - (tabs.clientWidth - on.offsetWidth) / 2;
 }
 
 /* ---------- Batalha ---------- */
