@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createBattle, turn } from './battle.js';
+import { createBattle, turn, summary } from './battle.js';
 
 // Pokedex de mentira no formato de www/data/pokedex.json, com stats, tipos e
 // golpes reais.
@@ -106,4 +106,26 @@ test('golpe erra quando o sorteio passa da precisao; critico multiplica por 1,5 
     { side: 0, move: 52, damage: 26, effectiveness: 2, crit: true },
     { side: 1, move: 75, missed: true },
   ]);
+});
+
+test('a ficha mostra os stats no nivel e os 4 golpes de agora, com tipo, poder, precisao e PP', () => {
+  const info = summary({ species: 4, level: 10 }, dex);
+  assert.deepEqual(info.stats, { hp: 30, atk: 18, def: 16, spa: 20, spd: 18, spe: 21 });
+  assert.deepEqual(info.moves.map((m) => [m.id, m.name, m.type, m.power, m.accuracy, m.pp, m.class]), [
+    [10, 'Scratch', 'normal', 40, 100, 35, 'physical'],
+    [45, 'Growl', 'normal', null, 100, 40, 'status'],
+    [52, 'Ember', 'fire', 40, 100, 25, 'special'],
+    [108, 'Smokescreen', 'normal', null, 100, 20, 'status'],
+  ]);
+});
+
+test('a ficha lista os golpes que ainda vai aprender, em ordem de nivel', () => {
+  assert.deepEqual(summary({ species: 4, level: 4 }, dex).upcoming.map((m) => [m.level, m.name]),
+    [[8, 'Smokescreen'], [12, 'Dragon Rage']]);
+  assert.deepEqual(summary({ species: 4, level: 12 }, dex).upcoming, []);
+});
+
+test('a ficha diz quanto cada tipo de ataque tira dele, so o que foge do normal', () => {
+  // Bulbasaur (planta/veneno): fogo x2 na planta; agua x0,5; planta x0,5 nos dois.
+  assert.deepEqual(summary({ species: 1, level: 5 }, dex).matchups, { fire: 2, water: 0.5, grass: 0.25 });
 });

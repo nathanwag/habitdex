@@ -38,6 +38,20 @@ export function createBattle(mine, theirs, dex) {
   return { sides, moves, efficacy: dex.efficacy, winner: null };
 }
 
+/** Ficha de um pokemon do jogador, com os mesmos numeros da batalha. */
+export function summary(mon, dex) {
+  const species = dex.pokemon.find((p) => p.id === mon.species);
+  return {
+    stats: statsAt(species.stats, mon.level),
+    moves: learned(species, mon.level).map((id) => ({ id, ...dex.moves[id] })),
+    upcoming: species.moves.filter(([at]) => at > mon.level)
+      .map(([level, id]) => ({ level, id, ...dex.moves[id] })),
+    matchups: Object.fromEntries(Object.keys(dex.efficacy)
+      .map((type) => [type, effectiveness(dex, type, species)])
+      .filter(([, x]) => x !== 1)),
+  };
+}
+
 // Golpe de quem nao tem golpe de dano (id 165 na PokeAPI). Sem tipo: nao
 // tem mesmo tipo nem efetividade. O recuo do jogo fica de fora.
 const STRUGGLE = 165;
