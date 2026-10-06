@@ -142,9 +142,11 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   quem recebe push silencioso. O payload usa o formato do Declarative Web
   Push (`web_push: 8030`), e o `sw.js` exibe o mesmo formato nas versões
   anteriores ao iOS 18.4.
-- **Uma notificação por hábito.** O `tag` e o `topic` do push são
-  `habito-<id>`. Com um topic só, o push service trocaria o aviso de um
-  hábito pelo de outro.
+- **Uma notificação por hábito.** O `tag` da notificação é `habito-<id>`:
+  um aviso novo troca só o do mesmo hábito.
+- **Push sem `Topic`.** A Apple recusa com 400 `BadWebPushTopic` todo push
+  que tenha o cabeçalho `Topic`, qualquer que seja o valor
+  (`worker/src/index.test.js`).
 - **Falha de cache não pode impedir o SW de instalar.** Sem SW não há push.
   Por isso o precache fica em try/catch e todo acesso a `caches` passa por
   `quiet()`.
@@ -228,7 +230,8 @@ Só os módulos puros e o Worker são testados. Os seams são:
 - `game.js`: `play` (com uma Pokédex falsa pequena) e `battle.js`:
   `createBattle`, `turn` (sorteio por parâmetro) e `summary` (a ficha)
 - `worker/src/api.js` (`handleApi`) e `cron.js` (`handleCron`), com KV e
-  `send` falsos
+  `send` falsos; `index.js` (`makeSend`), com `fetch` falso e chaves P-256
+  geradas no teste (o CI instala `worker/` antes do `npm test`)
 - `scripts/pokedex/build.js` (`parseCsv`, `buildPokedex`) e
   `scripts/gyms/build.js` (`buildLeague`); download e
   gravação (inclusive `scripts/sprites/`) não têm teste

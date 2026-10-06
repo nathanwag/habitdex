@@ -32,6 +32,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: npm
+          cache-dependency-path: worker/package-lock.json
+      # O teste do envio (worker/src/index.test.js) usa a biblioteca de push.
+      - run: npm ci --prefix worker
       - run: npm test
 
   deploy:

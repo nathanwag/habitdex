@@ -2,7 +2,7 @@ import { buildPushPayload } from '@block65/webcrypto-web-push';
 import { handleApi } from './api.js';
 import { handleCron } from './cron.js';
 
-function makeSend(env) {
+export function makeSend(env, fetchFn = fetch) {
   const vapid = {
     subject: env.VAPID_SUBJECT,
     publicKey: env.VAPID_PUBLIC_KEY,
@@ -11,12 +11,12 @@ function makeSend(env) {
   return async (subscription, message) => {
     const payload = await buildPushPayload({
       data: message,
-      // Lembrete entregue horas depois so atrapalha. O topic e o tag (um por
-      // habito): o push service troca um lembrete pendente pelo novo do mesmo
-      // habito, sem engolir o de outro.
-      options: { ttl: 30 * 60, urgency: 'high', topic: message.notification.tag },
+      // Lembrete entregue horas depois so atrapalha. Sem topic: a Apple recusa
+      // qualquer push com Topic (400 BadWebPushTopic). Quem troca o aviso
+      // antigo do mesmo habito e o tag, no aparelho.
+      options: { ttl: 30 * 60, urgency: 'high' },
     }, subscription, vapid);
-    return fetch(subscription.endpoint, payload);
+    return fetchFn(subscription.endpoint, payload);
   };
 }
 
