@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  dayProgress, habitHistory, streak, syncState, todayList,
+  dayProgress, habitHistory, reviseHabit, streak, syncState, todayList,
 } from './habits.js';
 
 const daily = (id, extra = {}) => ({ id, name: `h${id}`, schedule: { kind: 'daily' }, createdDay: '2026-09-01', order: id, ...extra });
@@ -109,4 +109,56 @@ test('o estado mandado ao Worker diz o que foi feito hoje e quantas vezes na sem
     doneToday: [1, 2],
     weekCounts: { 1: 2, 2: 1 },
   });
+});
+
+// O jogo recalcula os dias passados com esta lista: criar, arquivar ou mudar
+// a frequencia de um habito nao pode reescrever o que ja aconteceu.
+
+test('habito criado depois nao entra nos dias anteriores a criacao', () => {
+  const habits = [daily(1), daily(2, { createdDay: '2026-09-22' })];
+  assert.deepEqual(todayList(habits, [], '2026-09-21').map((i) => i.habit.id), [1]);
+  assert.deepEqual(todayList(habits, [], '2026-09-22').map((i) => i.habit.id), [1, 2]);
+});
+
+test('arquivado deixa de contar a partir do dia em que foi arquivado; antes, continua', () => {
+  const archived = daily(1, {
+    archived: true,
+    versions: [
+      { from: '2026-09-01', schedule: { kind: 'daily' }, archived: false },
+      { from: '2026-09-20', schedule: { kind: 'daily' }, archived: true },
+    ],
+  });
+  assert.equal(todayList([archived], [], '2026-09-19').length, 1);
+  assert.equal(todayList([archived], [], '2026-09-20').length, 0);
+});
+
+test('mudar a frequencia vale do dia da mudanca em diante', () => {
+  const changed = daily(1, {
+    schedule: { kind: 'days', days: [1] },
+    versions: [
+      { from: '2026-09-01', schedule: { kind: 'daily' }, archived: false },
+      { from: '2026-09-20', schedule: { kind: 'days', days: [1] }, archived: false },
+    ],
+  });
+  // Sabado 19/09 ainda era diario; depois, so segunda.
+  assert.equal(todayList([changed], [], '2026-09-19').length, 1);
+  assert.equal(todayList([changed], [], '2026-09-21').length, 1);
+  assert.equal(todayList([changed], [], '2026-09-22').length, 0);
+});
+
+test('editar frequencia ou arquivar registra uma versao a partir do dia; no mesmo dia, a ultima vale', () => {
+  const old = daily(1);
+  const mondays = reviseHabit(old, { ...old, schedule: { kind: 'days', days: [1] } }, '2026-09-20');
+  assert.deepEqual(mondays.schedule, { kind: 'days', days: [1] });
+  assert.deepEqual(mondays.versions, [
+    { from: '2026-09-01', schedule: { kind: 'daily' }, archived: false },
+    { from: '2026-09-20', schedule: { kind: 'days', days: [1] }, archived: false },
+  ]);
+  const archived = reviseHabit(mondays, { ...mondays, archived: true }, '2026-09-20');
+  assert.deepEqual(archived.versions.at(-1), { from: '2026-09-20', schedule: { kind: 'days', days: [1] }, archived: true });
+  assert.equal(archived.versions.length, 2);
+  // Trocar so o nome nao cria versao.
+  assert.deepEqual(reviseHabit(old, { ...old, name: 'Ler' }, '2026-09-20').versions, [
+    { from: '2026-09-01', schedule: { kind: 'daily' }, archived: false },
+  ]);
 });

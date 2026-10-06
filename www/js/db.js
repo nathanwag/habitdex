@@ -5,6 +5,7 @@
  * `await` acontece do lado de fora — nunca um `await` no meio de uma.
  */
 
+import { reviseHabit } from './habits.js';
 import { dayOf as dayIn } from './reminder.js';
 
 // Nome do banco NAO muda: IndexedDB e chaveado por (origem, nome), e trocar
@@ -103,20 +104,25 @@ export async function habit(id) {
   return (await tx('habits', 'readonly', (t) => req(t.objectStore('habits').get(id)))) ?? null;
 }
 
-/** Cria (sem `id`, entra no fim da lista e nasce hoje) ou atualiza. */
+/** Cria (sem `id`, entra no fim da lista e nasce hoje) ou atualiza. Mudanca
+ *  de frequencia ou de arquivado vira uma versao a partir de hoje: o passado
+ *  do jogo nao muda. */
 export async function saveHabit(data) {
   if (data.id != null) {
-    await tx('habits', 'readwrite', (t) => { t.objectStore('habits').put(data); });
-    return data;
+    const revised = reviseHabit((await habit(data.id)) ?? data, data, dayOf());
+    await tx('habits', 'readwrite', (t) => { t.objectStore('habits').put(revised); });
+    return revised;
   }
   const all = await habits();
+  const today = dayOf();
   const created = {
     archived: false,
     remindAt: null,
     ...data,
-    createdDay: dayOf(),
+    createdDay: today,
     order: all.length ? all.at(-1).order + 1 : 0,
   };
+  created.versions = [{ from: today, schedule: created.schedule, archived: false }];
   const id = await tx('habits', 'readwrite', (t) => req(t.objectStore('habits').add(created)));
   return { ...created, id: await id };
 }

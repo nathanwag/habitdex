@@ -11,12 +11,42 @@ const inWeekOf = (day) => {
   return (c) => c.day >= monday && c.day <= sunday;
 };
 
+// Cada mudanca de frequencia ou de arquivado vira uma versao a partir do dia
+// em que foi feita, para o passado continuar como era (o jogo recalcula os
+// dias antigos). Habito sem `versions` (de antes disso) tem uma versao so,
+// desde a criacao.
+const versionsOf = (habit) => habit.versions
+  ?? [{ from: habit.createdDay, schedule: habit.schedule, archived: Boolean(habit.archived) }];
+
+/** O habito como era em `day` (com a frequencia daquele dia), ou null se ainda
+ *  nao existia ou estava arquivado. */
+function asOf(habit, day) {
+  const version = versionsOf(habit).filter((v) => v.from <= day).at(-1);
+  return version && !version.archived ? { ...habit, schedule: version.schedule } : null;
+}
+
+/** `next` (o habito editado) com a versao de `day` registrada, se a frequencia
+ *  ou o arquivado mudaram. Duas mudancas no mesmo dia: vale a ultima. */
+export function reviseHabit(old, next, day) {
+  const versions = versionsOf(old);
+  const last = versions.at(-1);
+  const archived = Boolean(next.archived);
+  if (last.archived === archived && JSON.stringify(last.schedule) === JSON.stringify(next.schedule)) {
+    return { ...next, versions };
+  }
+  return {
+    ...next,
+    versions: [...versions.filter((v) => v.from !== day), { from: day, schedule: next.schedule, archived }],
+  };
+}
+
 /** Habitos ativos que valem em `day`, na ordem escolhida. Cada um diz se foi
  *  feito, quantas vezes na semana e se hoje ainda e obrigatorio (`mustDo`). */
 export function todayList(habits, checks, day) {
   const weekChecks = checks.filter(inWeekOf(day));
   return habits
-    .filter((h) => !h.archived && isScheduled(h, day))
+    .map((h) => asOf(h, day))
+    .filter((h) => h && isScheduled(h, day))
     .sort((a, b) => a.order - b.order)
     .map((habit) => {
       const mine = weekChecks.filter((c) => c.habitId === habit.id);

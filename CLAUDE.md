@@ -107,6 +107,11 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 - **`habits`**: `{ id, name, schedule, remindAt, createdDay, archived, order }`.
   `schedule` é `{ kind: 'daily' }`, `{ kind: 'days', days: [1, 3, 5] }`
   (numeração de `Date#getDay`) ou `{ kind: 'weekly', times: 3 }`.
+- **`versions`** do hábito: `[{ from, schedule, archived }]`. Mudar a
+  frequência ou arquivar registra uma versão a partir do dia (`reviseHabit`, no
+  `db.saveHabit`), e `todayList` usa a versão de cada dia: o jogo recalcula o
+  passado, então criar, arquivar ou mudar um hábito não pode reescrever dias
+  antigos. Hábito sem `versions` (anterior a isso) vale desde `createdDay`.
 - **`checks`**: `{ habitId, day, at }` com chave `[habitId, day]`, então há no
   máximo um por hábito e dia. Marcar é `put`, desmarcar é `delete`.
 - A **semana começa na segunda** (`weekOf`).
