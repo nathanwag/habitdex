@@ -62,8 +62,11 @@ export function play(input, dex) {
   const avgLevel = () => Math.round(party.reduce((s, m) => s + m.level, 0) / party.length);
   const progressOf = (day) => dayProgress(todayList(input.habits, input.checks, day));
 
+  // Evolucao dividida no mesmo nivel (Tyrogue, Wurmple): vai para o ramo que
+  // ainda nao foi pego, para dar para ter todos.
   const evolve = (mon) => {
-    const next = byId.get(mon.species).evolutions.find((e) => byLevel(e) && mon.level >= e.level);
+    const ready = byId.get(mon.species).evolutions.filter((e) => byLevel(e) && mon.level >= e.level);
+    const next = ready.find((e) => !caught.has(e.to)) ?? ready[0];
     if (!next) return;
     mon.species = next.to;
     caught.add(mon.species);
@@ -173,12 +176,24 @@ export function play(input, dex) {
 
   // Selvagens: a primeira forma de cada familia, de qualquer geracao e em
   // qualquer regiao (as evolucoes vem por nivel ou pedra). Lendarios e
-  // miticos inclusive, so quem tem sprite e nunca quem ja foi capturado. Sem
-  // ninguem para pegar, nao aparece selvagem.
+  // miticos inclusive e so quem tem sprite. Volta a aparecer so enquanto
+  // falta alguem da familia que nao foi pego nem e alcancavel pelos seus (time
+  // e caixa; o Hall nao conta): um Eevee ja virado Vaporeon traz outro Eevee,
+  // um ainda sem evoluir nao. Sem ninguem para pegar, nao aparece selvagem.
   const sprites = new Set(dex.sprites);
   const basics = dex.pokemon.filter((p) => p.evolvesFrom === null && sprites.has(p.id));
+  const families = new Map();
+  const familyOf = (id) => {
+    if (!families.has(id)) {
+      const next = byId.get(id)?.evolutions ?? [];
+      families.set(id, [id, ...next.flatMap((e) => familyOf(e.to))]);
+    }
+    return families.get(id);
+  };
   const wildOf = (day) => {
-    const pool = basics.filter((p) => !caught.has(p.id) || caughtToday.has(p.id));
+    const reachable = new Set([...party, ...box].flatMap((m) => familyOf(m.species)));
+    const missing = (p) => familyOf(p.id).some((id) => !caught.has(id) && !reachable.has(id));
+    const pool = basics.filter((p) => missing(p) || caughtToday.has(p.id));
     return pool.length ? pool[Math.floor(seeded(day) * pool.length)] : null;
   };
 

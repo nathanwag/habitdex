@@ -4,7 +4,7 @@
  * cache-primeiro com revalidacao. Bumpar VERSION e como se deploya.
  */
 
-const VERSION = 'habitos-v29';
+const VERSION = 'habitos-v30';
 // Os sprites (milhares, baixados sob demanda) ficam fora do VERSION para nao
 // serem apagados e baixados de novo a cada deploy.
 const SPRITES = 'habitos-sprites-v1';

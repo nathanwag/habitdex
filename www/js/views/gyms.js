@@ -79,7 +79,7 @@ export async function render(view, params) {
           <span class="next-boss__vs">Seu mais forte: ${myTop}</span>
           ${raw(ch.canBattle
             ? html`<a class="btn btn--primary btn--block" href="#/batalha">Desafiar</a>`
-            : html`<button class="btn btn--block" type="button" disabled>Perdeu hoje · tente amanhã</button>`)}
+            : html`<button class="btn btn--block" type="button" disabled>${state.party.length ? 'Perdeu hoje · tente amanhã' : 'Sem time: capture um pokémon'}</button>`)}
         </span>
       </section>`;
   }

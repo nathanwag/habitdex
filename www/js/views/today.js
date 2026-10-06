@@ -182,8 +182,7 @@ function goalCard(dex, state, list, progress, attack) {
   }
   return html`
     <section class="goal${attack ? ' is-attack' : ''}${met ? ' is-met' : ''}" aria-label="Meta de hoje">
-      ${raw(me ? html`<a class="goal__pic" href="#/pokemon?uid=${me.uid}" aria-label="${name}, Nv ${me.level}"><img class="sprite" src="${sprite(me.species)}" alt=""></a>`
-    : html`<span class="goal__pic">${raw(emptyBall(56))}</span>`)}
+      ${raw(me ? html`<a class="goal__pic" href="#/pokemon?uid=${me.uid}" aria-label="${name}, Nv ${me.level}"><img class="sprite" src="${sprite(me.species)}" alt=""></a>` : '')}
       <span class="grow">
         <span class="goal__title">${raw(String(title))}</span>
         <span class="goal__bar"><span style="width: ${pct(toNextLevel(progress, goal))}"></span></span>

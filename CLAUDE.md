@@ -74,7 +74,8 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   (`goal`, 0 a 1) sobe o time (até 6) 1 nível na hora; na virada ainda dá 1
   Pokébola, e dia abaixo da meta tira 1 nível do time (mínimo 1, sem
   desevoluir). A caixa fica congelada. Quem foi pego no dia não sobe nele.
-  Sozinha, só a evolução por nível puro (`byLevel`). Todo pokémon novo
+  Sozinha, só a evolução por nível puro (`byLevel`); dividida no mesmo
+  nível (Tyrogue, Wurmple), vai para o ramo ainda não pego. Todo pokémon novo
   (inicial ou capturado) entra no nível 1; começa com 5 Pokébolas.
 - **Pedra da Evolução:** cada 7 dias seguidos na meta (`metStreak`, zera
   na virada de um dia abaixo dela) dá 1 pedra (`stones`), já no 7º dia. O
@@ -85,16 +86,20 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   com `uid`) sobe 1 nível de quem está abaixo do mais alto do time, até empatar;
   sem doce ou no mais alto, o evento é ignorado. `party` (`uids`, até 6, o
   primeiro é o principal) escolhe o time; o resto vai para a caixa.
-- **Uma jornada por região:** vencer o campeão manda time e caixa para o
-  Hall da Fama (`hall`) e esvazia o time; `needsStarter` pede um novo
-  `start`. Cada jornada, inclusive a primeira, oferece só os 3 iniciais da
-  geração da região. Assim os níveis
-  originais de cada liga continuam valendo.
+- **Uma jornada por região:** vencer o campeão manda o time vencedor para o
+  Hall da Fama (`hall`, `{ region, team }`), onde fica fora de uso. A caixa
+  vira o time da próxima região (até 6, o resto continua na caixa), todos no
+  nível 1 sem desevoluir, para os níveis originais de cada liga valerem. Só
+  existe um inicial (o primeiro `start`, entre os 3 de Kanto); com a caixa
+  vazia o time fica vazio, o selvagem continua aparecendo e a primeira
+  captura forma o time.
 - **O selvagem do dia sai de um sorteio pela data** (`seeded`): o mesmo em
   qualquer recálculo. A primeira forma de cada família (`evolvesFrom` nulo),
   de qualquer geração e em qualquer região, lendários e míticos inclusive,
-  com sprite e **nunca quem já foi capturado** (o inicial e as evoluções
-  inclusive; o que escapou volta). O pego hoje continua sendo o selvagem de
+  com sprite. **Só aparece enquanto falta alguém da família** que não foi
+  pego nem é alcançável pelos seus (time e caixa; o Hall não conta): o
+  Eevee volta depois de virar Vaporeon, mas não enquanto houver um sem
+  evoluir; o que escapou volta. O pego hoje continua sendo o selvagem de
   hoje (`caughtToday`). Com todos pegos, `wild` é `null` e o Hoje não mostra
   o card. A chance é a fórmula da Gen 3/4.
 - **Arremesso é sorteado pela tela e gravado com o resultado** (`catch` com
@@ -215,7 +220,8 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 - O **Hoje** começa por um card curto da meta (o principal, "2 de 5 · falta 2"
   e a barra; marcar hábito faz ele pular). O selvagem do dia só aparece depois
   da meta batida, para jogar a Poké Bola. O "ontem" só aparece quando o time
-  caiu de nível. Antes do inicial, a escolha entre os 3 da região. Insígnias e
+  caiu de nível. Antes do inicial, a escolha entre os 3 de Kanto (só no
+  começo do jogo); sem time, o card da meta fica sem sprite. Insígnias e
   doces não ficam no Hoje (estão na Liga e no Time); as Pokébolas só aparecem
   no card do selvagem.
 - `#/pokemon?uid=` (`renderMon` em `views/team.js`): a ficha de quem está no

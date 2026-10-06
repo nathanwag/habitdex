@@ -385,3 +385,51 @@ test('o selvagem e a primeira forma da familia, de qualquer geracao, em qualquer
   // Em Kanto aparece o Pichu, mesmo sendo da geracao 2; Pikachu e Raichu vem por evolucao.
   assert.deepEqual([...seen], [172]);
 });
+
+test('a forma basica volta a aparecer enquanto faltar alguem da familia que os seus nao alcancam mais', () => {
+  const eeveeDex = {
+    ...dex,
+    pokemon: [...dex.pokemon,
+      species(133, 'Eevee', {
+        evolutions: [{ to: 134, trigger: 'use-item', item: 'water-stone' }, { to: 135, trigger: 'use-item', item: 'thunder-stone' }],
+      }),
+      species(134, 'Vaporeon', { evolvesFrom: 133 }), species(135, 'Jolteon', { evolvesFrom: 133 })],
+    sprites: [4, 5, 16, 133],
+  };
+  const start = { type: 'start', day: '2026-10-01', species: 4 };
+  const catchEevee = { type: 'catch', day: '2026-10-02', species: 133, level: 2, caught: true };
+  const wildsFrom = (events, from, to = 28) => {
+    const out = new Set();
+    for (let i = from; i <= to; i++) {
+      const today = `2026-10-${String(i).padStart(2, '0')}`;
+      out.add(play(started('2026-10-01', { today, events, checks: everyDay('2026-10-01', today) }), eeveeDex).wild.species);
+    }
+    return [...out].sort((a, b) => a - b);
+  };
+  // Com o Eevee ainda sem evoluir, a familia toda esta ao alcance: ele nao volta.
+  // O Charmander tambem nao: Charmeleon vem do seu.
+  assert.deepEqual(wildsFrom([start, catchEevee], 3), [16]);
+  // Evoluido em Vaporeon (pedra do dia 07), o Jolteon ficou sem caminho: o Eevee volta.
+  const stone = { type: 'stone', day: '2026-10-07', uid: 2, to: 134 };
+  assert.deepEqual(wildsFrom([start, catchEevee, stone], 8), [16, 133]);
+});
+
+test('na evolucao dividida por nivel, o pokemon vai para o ramo que voce ainda nao tem', () => {
+  const tyrogueDex = {
+    ...dex,
+    pokemon: [...dex.pokemon,
+      species(236, 'Tyrogue', {
+        evolutions: [{ to: 106, trigger: 'level-up', level: 20 }, { to: 107, trigger: 'level-up', level: 20 }],
+      }),
+      species(106, 'Hitmonlee', { evolvesFrom: 236 }), species(107, 'Hitmonchan', { evolvesFrom: 236 })],
+  };
+  // 01 a 19 na meta: nivel 20 no dia 19.
+  const tyrogue = (extra = []) => play(started('2026-10-01', {
+    today: '2026-10-19',
+    checks: everyDay('2026-10-01', '2026-10-19'),
+    events: [{ type: 'start', day: '2026-10-01', species: 236 }, ...extra],
+  }), tyrogueDex).party[0].species;
+  assert.equal(tyrogue(), 106);
+  // Ja tendo um Hitmonlee, o proximo vira Hitmonchan.
+  assert.equal(tyrogue([{ type: 'catch', day: '2026-10-02', species: 106, level: 2, caught: true }]), 107);
+});
