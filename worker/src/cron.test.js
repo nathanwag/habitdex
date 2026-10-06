@@ -9,7 +9,7 @@ const ler = { id: 2, name: 'Ler', schedule: { kind: 'daily' }, remindAt: '08:00'
 const config = { tz: 'America/Sao_Paulo', dayStart: '00:00', habits: [meditar] };
 
 const subscription = { endpoint: 'https://web.push.apple.com/abc', keys: { p256dh: 'p', auth: 'a' } };
-const appUrl = 'https://habitos.exemplo.workers.dev/';
+const appUrl = 'https://habitdex.exemplo.workers.dev/';
 
 function fakeKv(initial = {}) {
   const data = new Map(Object.entries(initial).map(([k, v]) => [k, JSON.stringify(v)]));

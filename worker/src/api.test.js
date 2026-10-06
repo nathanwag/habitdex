@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { handleApi } from './api.js';
 import { handleCron } from './cron.js';
 
-const ORIGIN = 'https://habitos.exemplo.workers.dev';
+const ORIGIN = 'https://habitdex.exemplo.workers.dev';
 const TOKEN = 'segredo-do-app';
 
 const config = {
@@ -142,7 +142,7 @@ test('testar envia uma notificacao na hora, que so abre o app sem marcar nada', 
   assert.equal(sent.length, 1);
   const { web_push: format, notification } = sent[0].message;
   assert.equal(format, 8030);
-  assert.equal(notification.title, 'Hábitos');
+  assert.equal(notification.title, 'HabitDex');
   assert.equal(notification.navigate, `${ORIGIN}/#/`);
 });
 

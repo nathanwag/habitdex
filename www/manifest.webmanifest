@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Hábitos",
-  "short_name": "Hábitos",
+  "name": "HabitDex",
+  "short_name": "HabitDex",
   "description": "Marque seus hábitos do dia e receba lembrete dos que faltam.",
   "lang": "pt-BR",
   "dir": "ltr",

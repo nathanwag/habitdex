@@ -2,7 +2,7 @@ import { dayOf, dueReminders, weekOf } from '../../www/js/reminder.js';
 
 export const DEVICE_KEY = 'device';
 
-const APP_NAME = 'Hábitos';
+const APP_NAME = 'HabitDex';
 
 function reminderText({ config, week, weekCounts }, now, habit) {
   if (habit.schedule.kind !== 'weekly') return `${habit.name} ainda falta hoje`;

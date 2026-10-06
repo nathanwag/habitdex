@@ -76,7 +76,7 @@ const fromBase64Url = (s) => {
 export async function enable() {
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') {
-    throw new Error('Notificações negadas. Libere em Ajustes do iPhone › Notificações › Hábitos.');
+    throw new Error('Notificações negadas. Libere em Ajustes do iPhone › Notificações › HabitDex.');
   }
   const { key } = await api('GET', 'vapid-public-key');
   if (!(await navigator.serviceWorker.getRegistration())) {

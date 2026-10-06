@@ -1,5 +1,5 @@
 {
-  "name": "habitos-worker",
+  "name": "habitdex-worker",
   "private": true,
   "type": "module",
   "scripts": {

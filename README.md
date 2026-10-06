@@ -1,4 +1,4 @@
-# Hábitos
+# HabitDex
 
 Tracker de hábitos no iPhone. É um app web instalado na Tela de Início que
 lembra, por notificação push, dos hábitos que ainda faltam no dia. Você marca
@@ -55,7 +55,7 @@ envio.
 
 4. **Deploy.** Faça um push na `main` ou rode o workflow **Deploy** na aba
    Actions. No fim do log aparece a URL:
-   `https://habitos.<seu-subdominio>.workers.dev`. O KV `STATE` é criado
+   `https://habitdex.<seu-subdominio>.workers.dev`. O KV `STATE` é criado
    automaticamente no primeiro deploy.
 5. **iPhone:**
    1. Abra a URL no **Safari** e toque em **Compartilhar › Adicionar à Tela de
