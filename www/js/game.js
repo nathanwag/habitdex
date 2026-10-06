@@ -169,20 +169,14 @@ export function play(input, dex) {
     step = 0;
   };
 
-  // Selvagens: a primeira forma de cada familia na geracao da regiao atual
-  // (as regioes estao na ordem das geracoes): sem forma anterior, ou com ela
-  // em outra geracao (Pikachu em Kanto, Crobat em Johto). Lendarios e
+  // Selvagens: a primeira forma de cada familia, de qualquer geracao e em
+  // qualquer regiao (as evolucoes vem por nivel ou pedra). Lendarios e
   // miticos inclusive, so quem tem sprite e nunca quem ja foi capturado. Sem
   // ninguem para pegar, nao aparece selvagem.
   const sprites = new Set(dex.sprites);
-  const pools = new Map();
+  const basics = dex.pokemon.filter((p) => p.evolvesFrom === null && sprites.has(p.id));
   const wildOf = (day) => {
-    const gen = regions.length ? Math.min(region, regions.length - 1) + 1 : 1;
-    if (!pools.has(gen)) {
-      pools.set(gen, dex.pokemon.filter((p) => p.gen === gen
-        && (p.evolvesFrom === null || byId.get(p.evolvesFrom).gen !== gen) && sprites.has(p.id)));
-    }
-    const pool = pools.get(gen).filter((p) => !caught.has(p.id) || caughtToday.has(p.id));
+    const pool = basics.filter((p) => !caught.has(p.id) || caughtToday.has(p.id));
     return pool.length ? pool[Math.floor(seeded(day) * pool.length)] : null;
   };
 

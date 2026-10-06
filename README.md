@@ -78,15 +78,19 @@ você enfrenta os ginásios de Kanto a Paldea.
 - **A meta do dia é o XP.** Dia na meta (por padrão 80% dos hábitos) sobe o
   time 1 nível, dá 1 Poké Bola e 1 Doce Raro. Dia abaixo da meta tira 1 nível.
   As evoluções acontecem no nível dos jogos.
-- **Um selvagem por dia**, sorteado pela data, aparece quando a meta é batida.
-  A chance de captura usa a fórmula dos jogos (Gen 3/4).
+- **Um selvagem por dia**, sorteado pela data, aparece quando a meta é batida:
+  a primeira forma de qualquer família, de qualquer geração, lendários
+  inclusive, e nunca um que você já tem. A chance de captura usa a fórmula dos
+  jogos (Gen 3/4).
+- **Pedra da Evolução** a cada 7 dias seguidos na meta. Ela evolui quem nos
+  jogos evolui por pedra, troca ou amizade (Raichu, Gengar, as Eeveelutions...).
 - **Time de 6 e caixa.** O Doce Raro ajuda quem foi capturado agora a alcançar
   o resto do time. A ficha de cada pokémon mostra status, golpes, próximas
   evoluções e fraquezas.
 - **Liga região por região:** 8 ginásios, Elite Four e campeão, com os times
   originais dos jogos. A batalha é automática (dano da Gen 5). Vencer o
   campeão manda o time para o Hall da Fama e abre a próxima região, com novos
-  iniciais e selvagens.
+  iniciais.
 - **Pokédex** com as 1025 espécies, por geração, com a ficha de quem você já
   viu.
 - **Marcar um dia esquecido corrige o jogo.** O estado inteiro é recalculado a

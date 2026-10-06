@@ -55,8 +55,7 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   Nomes em inglês: a PokeAPI não tem pt-BR.
 - **Evoluções** valem só partindo da forma padrão. Dez espécies (Obstagoon,
   Perrserker, Cursola, Sirfetch'd, Mr. Rime, Runerigus, Basculegion, Sneasler,
-  Overqwil, Clodsire) só evoluem de forma regional; como a forma anterior é
-  de outra geração, aparecem como selvagens na região delas.
+  Overqwil, Clodsire) só evoluem de forma regional e ficam sem caminho.
 - **`www/sprites/<id>/{front,back}.gif`** são os animados 3D do Pokémon
   Showdown (espelho no repo de sprites da PokeAPI): um loop parado, sem golpe
   nem dano (isso é CSS). `www/data/sprites.json` (`ids`) lista quem tem os
@@ -92,9 +91,9 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   geração da região. Assim os níveis
   originais de cada liga continuam valendo.
 - **O selvagem do dia sai de um sorteio pela data** (`seeded`): o mesmo em
-  qualquer recálculo. A primeira forma de cada família na geração da região
-  (sem forma anterior ou com ela em outra geração: Pikachu em Kanto, Crobat
-  em Johto), lendários e míticos inclusive, com sprite e **nunca quem já foi capturado** (o inicial e as evoluções
+  qualquer recálculo. A primeira forma de cada família (`evolvesFrom` nulo),
+  de qualquer geração e em qualquer região, lendários e míticos inclusive,
+  com sprite e **nunca quem já foi capturado** (o inicial e as evoluções
   inclusive; o que escapou volta). O pego hoje continua sendo o selvagem de
   hoje (`caughtToday`). Com todos pegos, `wild` é `null` e o Hoje não mostra
   o card. A chance é a fórmula da Gen 3/4.
@@ -102,8 +101,8 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   `caught`): o motor nunca sorteia captura de novo ao recalcular.
 - **Liga em sequência** (`play` → `challenge`): ginásios, Elite Four e campeão,
   região por região. A tela roda a batalha e grava `battle` com `won`; perder
-  trava aquele chefe até o dia seguinte. Vencer o campeão muda a região e a
-  geração dos selvagens (índice da região + 1). O time com variante de inicial
+  trava aquele chefe até o dia seguinte. Vencer o campeão muda a região (e
+  os 3 iniciais oferecidos). O time com variante de inicial
   usa o tipo do primeiro do seu time (fogo se não for fogo, água nem grama).
   `challenge.steps` traz todos os chefes da região atual já nessa variante, e
   `challenge.current` é o índice do próximo; a tela não lê o `gyms.json` cru

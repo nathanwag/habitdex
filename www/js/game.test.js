@@ -74,7 +74,7 @@ test('comeca com 5 Pokebolas e ganha uma a cada dia que fecha na meta', () => {
   assert.equal(state.balls, 6);
 });
 
-test('o selvagem do dia e sempre o mesmo naquela data e e uma forma basica da geracao, lendarios inclusive', () => {
+test('o selvagem do dia e sempre o mesmo naquela data e e uma forma basica com sprite, lendarios inclusive', () => {
   const wider = {
     ...dex,
     pokemon: [...dex.pokemon,
@@ -93,7 +93,7 @@ test('o selvagem do dia e sempre o mesmo naquela data e e uma forma basica da ge
     seen.add(wild.species);
   }
   // O Charmander e o inicial: ja capturado, nao aparece.
-  assert.deepEqual([...seen].sort((a, b) => a - b), [16, 150, 151]);
+  assert.deepEqual([...seen].sort((a, b) => a - b), [16, 150, 151, 906]);
 });
 
 test('o selvagem nunca e quem voce ja capturou; o que escapou pode voltar', () => {
@@ -243,12 +243,11 @@ test('vencer o campeao manda time e caixa para o Hall da Fama e pede um inicial 
   assert.deepEqual(state.needsStarter, { region: 'johto', gen: 2 });
 });
 
-test('com o novo inicial a jornada recomeca no nivel 1, e os selvagens sao da geracao da regiao', () => {
+test('com o novo inicial a jornada recomeca no nivel 1', () => {
   const events = [...started().events, ...wins(4), { type: 'start', day: '2026-10-05', species: 7 }];
   const state = play(started('2026-10-05', { events }), leagueDex);
   assert.deepEqual(state.party, [{ uid: 2, species: 7, level: 1 }]);
   assert.equal(state.needsStarter, null);
-  assert.equal(state.wild.species, 161);
   assert.deepEqual(state.caught, [4, 7]);
 });
 
@@ -364,7 +363,7 @@ test('a Pedra evolui qualquer pokemon que evolui por pedra, troca ou amizade, pa
   assert.equal(withEevee([use(16)]).party[0].species, 133);
 });
 
-test('o selvagem pode ser a primeira forma da familia que existe na geracao, mesmo que ela evolua de outra geracao', () => {
+test('o selvagem e a primeira forma da familia, de qualquer geracao, em qualquer regiao', () => {
   const babies = {
     ...dex,
     pokemon: [...dex.pokemon,
@@ -376,6 +375,6 @@ test('o selvagem pode ser a primeira forma da familia que existe na geracao, mes
   for (let i = 1; i <= 28; i++) {
     seen.add(play(started('2026-10-01', { today: `2026-10-${String(i).padStart(2, '0')}` }), babies).wild.species);
   }
-  // Em Kanto, o Pikachu (o Pichu e da geracao 2); o Raichu nao, porque vem do Pikachu.
-  assert.deepEqual([...seen], [25]);
+  // Em Kanto aparece o Pichu, mesmo sendo da geracao 2; Pikachu e Raichu vem por evolucao.
+  assert.deepEqual([...seen], [172]);
 });
