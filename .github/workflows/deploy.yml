@@ -68,13 +68,13 @@ jobs:
           VAPID_SUBJECT: ${{ secrets.VAPID_SUBJECT }}
           APP_TOKEN: ${{ secrets.APP_TOKEN }}
 
-      # TEMPORARIO (migracao para habitdex): publica o mesmo app no endereco
-      # antigo, para o app instalado nele abrir e exportar os dados (o
-      # IndexedDB e preso ao endereco). Tirar depois da migracao e apagar o
-      # Worker "habitos" na Cloudflare.
+      # TEMPORARIO (migracao para habitdex): os arquivos do app no endereco
+      # antigo (wrangler.migracao.toml), para o app instalado nele abrir e
+      # exportar os dados. Tirar depois da migracao e apagar o Worker
+      # "habitos" na Cloudflare.
       - uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           workingDirectory: worker
-          command: deploy --name habitos
+          command: deploy --config wrangler.migracao.toml

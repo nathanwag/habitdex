@@ -1,0 +1,9 @@
+# TEMPORARIO (migracao para habitdex): so os arquivos do app no endereco
+# antigo, sem API, cron nem KV, para o app instalado nele abrir e exportar os
+# dados (o IndexedDB e preso ao endereco). Apagar junto com o passo do
+# deploy.yml e o Worker "habitos" na Cloudflare depois da migracao.
+name = "habitos"
+compatibility_date = "2026-09-01"
+
+[assets]
+directory = "../www"
