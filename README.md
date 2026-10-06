@@ -1,5 +1,12 @@
 # HabitDex
 
+> **Aviso:** projeto de fã, sem fins comerciais e sem vínculo com a Nintendo.
+> Pokémon e todo o material relacionado (nomes, sprites, dados dos jogos) são
+> propriedade da Nintendo, Creatures Inc. e GAME FREAK inc. e são usados aqui
+> só para fins pessoais e não comerciais. Nada aqui é vendido nem monetizado.
+> Se você é titular desses direitos e quer que algo seja removido, abra uma
+> issue.
+
 Tracker de hábitos no iPhone. É um app web instalado na Tela de Início que
 lembra, por notificação push, dos hábitos que ainda faltam no dia. Você marca
 cada hábito com um toque, e os horários dos lembretes ficam em cada hábito.
