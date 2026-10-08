@@ -74,6 +74,9 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   (`goal`, 0 a 1) sobe o time (até 6) 1 nível na hora; na virada ainda dá 3
   Pokébolas, e dia abaixo da meta tira 1 nível do time (mínimo 1, sem
   desevoluir). A caixa fica congelada. Quem foi pego no dia não sobe nele.
+  Semanais ficam fora da meta (`dayProgress`): na virada do domingo, cada
+  vez que faltou tira 1 nível (`weekMisses`, `lastWeek`), só se o hábito foi
+  semanal a semana inteira e o jogo já tinha começado na segunda.
   Sozinha, só a evolução por nível puro (`byLevel`); dividida no mesmo
   nível (Tyrogue, Wurmple), vai para o ramo ainda não pego. Todo pokémon novo
   (inicial ou capturado) entra no nível 1; começa com 5 Pokébolas.
@@ -142,8 +145,8 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   máximo um por hábito e dia. Marcar é `put`, desmarcar é `delete`.
 - A **semana começa na segunda** (`weekOf`).
 - O "semanal" vale todo dia e só é **obrigatório** (`mustDoToday`) quando o que
-  falta na semana já ocupa todos os dias restantes. Só isso conta como
-  pendência no progresso do dia e nos lembretes.
+  falta na semana já ocupa todos os dias restantes. Isso só decide os
+  lembretes: o semanal nunca entra no progresso do dia (é cobrado no domingo).
 
 ## Regras que quebram em silêncio
 
@@ -246,7 +249,7 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 Só os módulos puros e o Worker são testados. Os seams são:
 - `reminder.js`: `dayOf`, `weekOf`, `isScheduled`, `mustDoToday`,
   `dueReminders`, `nextReminder` e `configError`
-- `habits.js`: `todayList`, `dayProgress`, `streak`, `habitHistory`, `iconOf`, `habitIcon`, `bestStreak`, `monthDays` e
+- `habits.js`: `todayList`, `dayProgress`, `weekMisses`, `streak`, `habitHistory`, `iconOf`, `habitIcon`, `bestStreak`, `monthDays` e
   `syncState`
 - `backup.js`: `makeBackup` e `parseBackup`
 - `game.js`: `play` (com uma Pokédex falsa pequena) e `battle.js`:

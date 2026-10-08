@@ -39,7 +39,7 @@ function scheduleFields(schedule) {
           <button class="icon-btn" type="button" data-times="1" aria-label="Mais" ${times >= MAX_TIMES ? 'disabled' : ''}>+</button>
         </span>
       </div>
-      <p class="hint">Em qualquer dia da semana. O lembrete só vem quando não der mais pra deixar pra depois.</p>`;
+      <p class="hint">Em qualquer dia da semana, fora da meta do dia. No domingo, cada vez que faltou tira 1 nível do time. O lembrete só vem quando não der mais pra deixar pra depois.</p>`;
   }
   return '';
 }

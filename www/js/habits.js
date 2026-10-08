@@ -56,12 +56,25 @@ export function todayList(habits, checks, day) {
     });
 }
 
-/** Fracao do dia cumprida (0 a 1), ou null sem habitos hoje. Semanal ainda
- *  com folga e nao feito fica fora da conta: nao e atraso. */
+/** Fracao do dia cumprida (0 a 1), ou null sem habitos que contam hoje. O
+ *  semanal fica fora: ele e cobrado no fim da semana, nao no dia. */
 export function dayProgress(list) {
-  if (!list.length) return null;
-  const counted = list.filter((i) => i.done || i.mustDo);
-  return counted.length ? counted.filter((i) => i.done).length / counted.length : 1;
+  const counted = list.filter((i) => i.habit.schedule.kind !== 'weekly');
+  if (!counted.length) return null;
+  return counted.filter((i) => i.done).length / counted.length;
+}
+
+/** Quantas vezes faltaram, somando os semanais, na semana que comeca em
+ *  `monday`. So conta quem foi semanal a semana inteira (criado ou mudado no
+ *  meio dela nao teria como cumprir), com as vezes do domingo. Fazer a mais
+ *  num nao compensa outro. */
+export function weekMisses(habits, checks, monday) {
+  const week = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const weekChecks = checks.filter(inWeekOf(monday));
+  return habits
+    .filter((h) => week.every((day) => asOf(h, day)?.schedule.kind === 'weekly'))
+    .map((h) => asOf(h, week[6]))
+    .reduce((sum, h) => sum + Math.max(0, h.schedule.times - weekChecks.filter((c) => c.habitId === h.id).length), 0);
 }
 
 // Comeco do habito para sequencia, recorde e calendario: a criacao no app ou

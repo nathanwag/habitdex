@@ -8,7 +8,7 @@ import {
 import {
   game, sprite, toNextLevel, startersOf, ball, emptyBall,
 } from '../pokemon.js';
-import { addDays, SNOOZE_MIN } from '../reminder.js';
+import { addDays, SNOOZE_MIN, weekOf } from '../reminder.js';
 import {
   html, raw, setTop, toast, buzz, refresh, isIOS, isStandalone, openSheet, closeSheet, node, APP_NAME,
 } from '../ui.js';
@@ -158,21 +158,29 @@ function yesterdayLine(state, today) {
   return html`<p class="banner banner--bad">Ontem ficou em ${pct(last.progress)}, abaixo da meta: o time perdeu 1 nível.</p>`;
 }
 
-function goalCard(dex, state, list, progress, attack) {
+// Na segunda, o que os semanais da semana passada custaram.
+function lastWeekLine(state, today) {
+  const last = state.lastWeek;
+  if (!last?.missing || today !== weekOf(today) || last.week !== addDays(today, -7)) return '';
+  return html`<p class="banner banner--bad">Semana passada faltaram ${plural(last.missing, 'vez', 'vezes')} nos semanais: o time perdeu ${plural(last.missing, 'nível', 'níveis')}.</p>`;
+}
+
+function goalCard(dex, state, all, progress, attack) {
+  // Os semanais sao cobrados no fim da semana, nao entram na meta do dia.
+  const list = all.filter((i) => i.habit.schedule.kind !== 'weekly');
   // Sem time (o vencedor da liga foi para o Hall e a caixa estava vazia), o
   // card fala do selvagem, que vai formar o time novo.
   const me = state.party[0];
   const name = me && dex.byId.get(me.species).name;
   const goal = db.settings().goal;
   const done = list.filter((i) => i.done).length;
-  const counted = list.filter((i) => i.done || i.mustDo).length;
   const met = progress !== null && progress >= goal;
-  const missing = Math.max(0, Math.ceil(goal * counted - 1e-9) - done);
+  const missing = Math.max(0, Math.ceil(goal * list.length - 1e-9) - done);
   let title;
   let sub;
   if (!list.length) {
     title = 'Nada pra hoje';
-    sub = 'Sem hábitos agendados hoje.';
+    sub = all.length ? 'Hoje só tem semanais, que contam no fim da semana.' : 'Sem hábitos agendados hoje.';
   } else if (met) {
     title = 'Meta batida!';
     sub = `${me ? `${name} subiu pro Nv ${me.level}` : 'Sem time: capture o selvagem'} · +1 doce${state.metStreak % 7 === 0 ? ' · +1 Pedra da Evolução' : ''}`;
@@ -273,6 +281,7 @@ export async function render(view) {
   }
 
   const top = g ? html`
+    ${raw(lastWeekLine(g.state, today))}
     ${raw(yesterdayLine(g.state, today))}
     ${raw(goalCard(g.dex, g.state, list, progress, attack))}
     ${raw(wildCard(g.dex, g.state, progress))}` : '';

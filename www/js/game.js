@@ -3,8 +3,8 @@
  * jogador (`events`). Marcar um dia passado refaz a conta sozinho. Puro, pra
  * rodar sob node --test; a Pokedex (www/data/pokedex.json) entra pronta. */
 
-import { dayProgress, todayList } from './habits.js';
-import { addDays } from './reminder.js';
+import { dayProgress, todayList, weekMisses } from './habits.js';
+import { addDays, weekOf } from './reminder.js';
 
 // Todo pokemon novo, inicial ou capturado, entra no nivel 1.
 const START_LEVEL = 1;
@@ -46,6 +46,7 @@ export function play(input, dex) {
   let metStreak = 0;
   let stones = 0;
   let lastDay = null;
+  let lastWeek = null;
   const caught = new Set();
   // Pegos hoje: continuam podendo ser o selvagem de hoje (o que acabou de ser
   // capturado), mas nao o de amanha.
@@ -89,14 +90,23 @@ export function play(input, dex) {
       evolve(mon);
     }
   };
+  // A caixa fica congelada: so o time sobe e cai.
+  const levelDown = (levels) => {
+    for (const mon of party) mon.level = Math.max(1, mon.level - levels);
+  };
   const turnover = (day) => {
     const progress = progressOf(day);
-    if (progress === null) return;
-    lastDay = { day, progress, met: progress >= input.goal };
-    if (lastDay.met) { balls += BALLS_PER_DAY; return; }
-    metStreak = 0;
-    // A caixa fica congelada: so o time sobe e cai.
-    for (const mon of party) mon.level = Math.max(1, mon.level - 1);
+    if (progress !== null) {
+      lastDay = { day, progress, met: progress >= input.goal };
+      if (lastDay.met) balls += BALLS_PER_DAY;
+      else { metStreak = 0; levelDown(1); }
+    }
+    // Na virada do domingo, cada vez que faltou num semanal tira 1 nivel. A
+    // semana em que o jogo comecou no meio nao cobra.
+    if (weekOf(addDays(day, 1)) === addDays(day, 1) && start.day <= weekOf(day)) {
+      lastWeek = { week: weekOf(day), missing: weekMisses(input.habits, input.checks, weekOf(day)) };
+      levelDown(lastWeek.missing);
+    }
   };
 
   // A tela sorteia o arremesso com a chance de `wild` e grava o resultado:
@@ -240,7 +250,7 @@ export function play(input, dex) {
 
   const sorted = (set) => [...set].sort((a, b) => a - b);
   const result = {
-    started: true, party: plain(party), box: plain(box), hall, balls, candies, stones, metStreak, challenge, lastDay,
+    started: true, party: plain(party), box: plain(box), hall, balls, candies, stones, metStreak, challenge, lastDay, lastWeek,
     caught: sorted(caught), seen: sorted(new Set([...seen, ...caught])),
     wild: null,
   };

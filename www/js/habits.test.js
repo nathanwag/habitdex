@@ -32,12 +32,14 @@ test('o habito semanal conta os dias feitos na semana e diz se hoje ja e obrigat
   assert.equal(friday.mustDo, false);
 });
 
-test('o progresso do dia so conta o que era obrigatorio ou foi feito', () => {
-  const item = (done, mustDo) => ({ done, mustDo });
-  assert.equal(dayProgress([item(true, false), item(false, true)]), 0.5);
-  // Semanal folgado nao pesa contra o dia.
-  assert.equal(dayProgress([item(true, false), item(false, false)]), 1);
-  assert.equal(dayProgress([item(false, false)]), 1);
+test('o progresso do dia e a fracao feita dos que valem no dia, sem os semanais', () => {
+  const weekly = { ...daily(3), schedule: { kind: 'weekly', times: 3 } };
+  const habits = [daily(1), { ...daily(2), schedule: { kind: 'days', days: [1] } }, weekly];
+  // 2026-09-21 e segunda: valem os tres; o semanal fica fora da conta.
+  assert.equal(dayProgress(todayList(habits, [check(1, '2026-09-21')], '2026-09-21')), 0.5);
+  // Domingo sem nenhum semanal feito: ele e obrigatorio, mas ainda fica fora.
+  assert.equal(dayProgress(todayList(habits, [check(1, '2026-09-27')], '2026-09-27')), 1);
+  assert.equal(dayProgress(todayList([weekly], [check(3, '2026-09-27')], '2026-09-27')), null);
   assert.equal(dayProgress([]), null);
 });
 

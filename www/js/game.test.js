@@ -67,6 +67,42 @@ test('dia que termina abaixo da meta derruba um nivel, nunca abaixo do 1 e sem d
   assert.deepEqual(evolved.party[0], { uid: 1, species: 5, level: 15 });
 });
 
+const weekly = (id, times) => ({ ...daily(id), schedule: { kind: 'weekly', times } });
+
+test('no fim da semana, cada vez que faltou num semanal tira um nivel do time', () => {
+  // 28/09 (segunda) a 04/10 (domingo) com o diario feito: nivel 1 + 7 = 8.
+  const level = (days) => play(started('2026-09-28', {
+    habits: [daily(1), weekly(2, 3)],
+    checks: [...everyDay('2026-09-28', '2026-10-04'), ...days.map((d) => check(2, d))],
+  }), dex).party[0].level;
+  assert.equal(level(['2026-10-01']), 6);
+  assert.equal(level([]), 5);
+  assert.equal(level(['2026-09-28', '2026-09-30', '2026-10-02']), 8);
+  // Fazer a mais nao da bonus.
+  assert.equal(level(['2026-09-28', '2026-09-29', '2026-09-30', '2026-10-02']), 8);
+});
+
+test('o estado diz quantas vezes faltaram na ultima semana fechada', () => {
+  const input = started('2026-09-28', { habits: [daily(1), weekly(2, 3)], checks: [check(2, '2026-10-01')] });
+  assert.equal(play(input, dex).lastWeek.missing, 2);
+  assert.equal(play(input, dex).lastWeek.week, '2026-09-28');
+  assert.equal(play({ ...input, today: '2026-10-04' }, dex).lastWeek, null);
+});
+
+test('semana que o jogo ou o semanal pegou pela metade nao cobra o semanal', () => {
+  // Jogo comecou na quinta (01/10): 4 dias na meta, nivel 5, sem cobranca.
+  const midGame = play(started('2026-10-01', {
+    habits: [daily(1), weekly(2, 3)], checks: everyDay('2026-10-01', '2026-10-04'),
+  }), dex);
+  assert.equal(midGame.party[0].level, 5);
+  // Semanal criado na quarta (30/09): a primeira semana dele nao conta.
+  const late = { ...weekly(2, 3), createdDay: '2026-09-30', versions: [{ from: '2026-09-30', schedule: { kind: 'weekly', times: 3 }, archived: false }] };
+  const midHabit = play(started('2026-09-28', {
+    habits: [daily(1), late], checks: everyDay('2026-09-28', '2026-10-04'),
+  }), dex);
+  assert.equal(midHabit.party[0].level, 8);
+});
+
 test('comeca com 5 Pokebolas e ganha 3 a cada dia que fecha na meta', () => {
   assert.equal(play(started(), dex).balls, 5);
   // 10-03 na meta (+3), 10-04 abaixo (nada); hoje ainda nao fechou.

@@ -78,6 +78,9 @@ você enfrenta os ginásios de Kanto a Paldea.
 - **A meta do dia é o XP.** Dia na meta (por padrão 80% dos hábitos) sobe o
   time 1 nível, dá 3 Poké Bolas e 1 Doce Raro. Dia abaixo da meta tira 1 nível.
   As evoluções acontecem no nível dos jogos.
+- **Os semanais ficam fora da meta do dia.** No fim da semana, cada vez que
+  faltou tira 1 nível do time (fez 1 de 3, perde 2). A semana em que o hábito
+  ou o jogo começou no meio não cobra.
 - **Um selvagem por dia**, sorteado pela data, aparece quando a meta é batida:
   a primeira forma de qualquer família, de qualquer geração, lendários
   inclusive. Ele só se repete enquanto faltar alguém da família (mais Eevees

@@ -190,7 +190,7 @@ export async function renderGoal(view) {
           ${raw(GOALS.map((g) => html`<button class="seg__opt" type="button" role="radio" data-goal="${g}"
             aria-checked="${String(g === goal)}">${Math.round(g * 100)}%</button>`).join(''))}
         </div>
-        <p class="hint">Bater a meta sobe o time 1 nível na hora e, na virada, dá 3 Pokébolas. Se o dia fechar abaixo da meta, o time perde 1 nível. Só batendo a meta dá para jogar Pokébola no selvagem do dia.</p>
+        <p class="hint">Bater a meta sobe o time 1 nível na hora e, na virada, dá 3 Pokébolas. Se o dia fechar abaixo da meta, o time perde 1 nível. Só batendo a meta dá para jogar Pokébola no selvagem do dia. Os semanais ficam fora da meta: no fim da semana, cada vez que faltou tira 1 nível.</p>
       </div>
     </section>
   `;
