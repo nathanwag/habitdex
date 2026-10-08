@@ -71,8 +71,8 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   escolhas do jogador). Por isso marcar um dia passado já corrige níveis e
   Pokébolas. Não guarde nível nem XP: guarde o evento.
 - **Regras do motor:** o nível sobe pela meta, não por XP: dia na meta
-  (`goal`, 0 a 1) sobe o time (até 6) 1 nível na hora; na virada ainda dá 1
-  Pokébola, e dia abaixo da meta tira 1 nível do time (mínimo 1, sem
+  (`goal`, 0 a 1) sobe o time (até 6) 1 nível na hora; na virada ainda dá 3
+  Pokébolas, e dia abaixo da meta tira 1 nível do time (mínimo 1, sem
   desevoluir). A caixa fica congelada. Quem foi pego no dia não sobe nele.
   Sozinha, só a evolução por nível puro (`byLevel`); dividida no mesmo
   nível (Tyrogue, Wurmple), vai para o ramo ainda não pego. Todo pokémon novo

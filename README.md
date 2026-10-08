@@ -76,7 +76,7 @@ você enfrenta os ginásios de Kanto a Paldea.
 - **Escolha um inicial** entre os três de Kanto. Todo pokémon novo começa no
   nível 1.
 - **A meta do dia é o XP.** Dia na meta (por padrão 80% dos hábitos) sobe o
-  time 1 nível, dá 1 Poké Bola e 1 Doce Raro. Dia abaixo da meta tira 1 nível.
+  time 1 nível, dá 3 Poké Bolas e 1 Doce Raro. Dia abaixo da meta tira 1 nível.
   As evoluções acontecem no nível dos jogos.
 - **Um selvagem por dia**, sorteado pela data, aparece quando a meta é batida:
   a primeira forma de qualquer família, de qualquer geração, lendários

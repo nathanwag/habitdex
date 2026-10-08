@@ -67,11 +67,11 @@ test('dia que termina abaixo da meta derruba um nivel, nunca abaixo do 1 e sem d
   assert.deepEqual(evolved.party[0], { uid: 1, species: 5, level: 15 });
 });
 
-test('comeca com 5 Pokebolas e ganha uma a cada dia que fecha na meta', () => {
+test('comeca com 5 Pokebolas e ganha 3 a cada dia que fecha na meta', () => {
   assert.equal(play(started(), dex).balls, 5);
-  // 10-03 na meta (+1), 10-04 abaixo (nada); hoje ainda nao fechou.
+  // 10-03 na meta (+3), 10-04 abaixo (nada); hoje ainda nao fechou.
   const state = play(started('2026-10-03', { checks: [check(1, '2026-10-03'), check(1, '2026-10-05')] }), dex);
-  assert.equal(state.balls, 6);
+  assert.equal(state.balls, 8);
 });
 
 test('o selvagem do dia e sempre o mesmo naquela data e e uma forma basica com sprite, lendarios inclusive', () => {
@@ -141,8 +141,8 @@ test('cada arremesso gasta uma Pokebola e a captura entra no time no nivel 1', (
       { type: 'catch', day: '2026-10-04', species: 16, level: 3, caught: true },
     ],
   }), dex);
-  // 5 iniciais + 2 dias na meta - 2 arremessos.
-  assert.equal(state.balls, 5);
+  // 5 iniciais + 2 dias na meta (3 cada) - 2 arremessos.
+  assert.equal(state.balls, 9);
   // O Charmander sobe nos dois dias; o Pidgey entra no 1, mesmo pego no nivel
   // 3, e nao sobe no dia em que foi pego (a meta ja estava batida).
   assert.deepEqual(state.party, [
@@ -162,7 +162,7 @@ test('do setimo em diante a captura vai para a caixa, que fica congelada: nao so
   // 03/10 em branco: o time cai um nivel (os do 1 ficam no 1); a caixa congela.
   assert.deepEqual(state.party.map((m) => m.level), [2, 1, 1, 1, 1, 1]);
   assert.deepEqual(state.box, [{ uid: 7, species: 16, level: 1 }]);
-  assert.equal(state.balls, 1);
+  assert.equal(state.balls, 5);
 });
 
 test('o selvagem de hoje, depois de capturado, nao aceita mais Pokebola', () => {

@@ -9,6 +9,7 @@ import { addDays } from './reminder.js';
 // Todo pokemon novo, inicial ou capturado, entra no nivel 1.
 const START_LEVEL = 1;
 const START_BALLS = 5;
+const BALLS_PER_DAY = 3;
 const PARTY_SIZE = 6;
 const STONE_STREAK = 7;
 
@@ -74,7 +75,7 @@ export function play(input, dex) {
   };
 
   // Dia na meta: o time sobe um nivel, ja no dia (desmarcar desfaz, porque
-  // tudo e recalculado). Na virada, dia na meta ainda ganha uma Pokebola;
+  // tudo e recalculado). Na virada, dia na meta ainda ganha 3 Pokebolas;
   // abaixo dela o time cai um nivel (nunca abaixo do 1) sem desevoluir.
   const levelUp = (day) => {
     const progress = progressOf(day);
@@ -92,7 +93,7 @@ export function play(input, dex) {
     const progress = progressOf(day);
     if (progress === null) return;
     lastDay = { day, progress, met: progress >= input.goal };
-    if (lastDay.met) { balls++; return; }
+    if (lastDay.met) { balls += BALLS_PER_DAY; return; }
     metStreak = 0;
     // A caixa fica congelada: so o time sobe e cai.
     for (const mon of party) mon.level = Math.max(1, mon.level - 1);
