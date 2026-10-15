@@ -103,7 +103,8 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   pego nem é alcançável pelos seus (time e caixa; o Hall não conta): o
   Eevee volta depois de virar Vaporeon, mas não enquanto houver um sem
   evoluir; o que escapou volta. O pego hoje continua sendo o selvagem de
-  hoje (`caughtToday`). Com todos pegos, `wild` é `null` e o Hoje não mostra
+  hoje (`caughtToday`). Na Pokédex ele só conta como visto no dia em que
+  apareceu de fato (meta batida, ou já levou Pokébola). Com todos pegos, `wild` é `null` e o Hoje não mostra
   o card. A chance é a fórmula da Gen 3/4.
 - **Arremesso é sorteado pela tela e gravado com o resultado** (`catch` com
   `caught`): o motor nunca sorteia captura de novo ao recalcular.

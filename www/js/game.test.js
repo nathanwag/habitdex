@@ -307,6 +307,14 @@ test('a Pokedex marca como capturado o que voce teve (evolucoes inclusive) e com
   assert.deepEqual(state.seen, [4, 5, 16]);
 });
 
+test('o selvagem so conta como visto no dia em que a meta foi batida (quando ele aparece)', () => {
+  const onlyPidgeyWild = { ...dex, sprites: [16] };
+  const events = [{ type: 'start', day: '2026-10-03', species: 4 }];
+  assert.deepEqual(play(started('2026-10-03', { events }), onlyPidgeyWild).seen, [4]);
+  const met = play(started('2026-10-03', { events, checks: [check(1, '2026-10-04')] }), onlyPidgeyWild);
+  assert.deepEqual(met.seen, [4, 16]);
+});
+
 test('o resumo do ultimo dia fechado diz se bateu a meta', () => {
   const state = play(started('2026-10-03', { checks: [check(1, '2026-10-03')] }), dex);
   assert.deepEqual(state.lastDay, { day: '2026-10-04', progress: 0, met: false });

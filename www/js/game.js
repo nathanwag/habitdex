@@ -219,8 +219,12 @@ export function play(input, dex) {
     }
     // Sem time (caixa vazia depois de um campeao), o selvagem ainda aparece:
     // a primeira captura forma o time.
+    // So e visto quando aparece no Hoje: com a meta batida, ou se ja levou
+    // Pokebola (a meta pode ter sido desmarcada depois).
     const wild = wildOf(day);
-    if (wild) seen.add(wild.id);
+    const progress = progressOf(day);
+    const thrown = input.events.some((e) => e.type === 'catch' && e.day === day);
+    if (wild && ((progress !== null && progress >= input.goal) || thrown)) seen.add(wild.id);
     levelUp(day);
     // Doce e pedra depois da subida do dia: os ganhos hoje ja valem hoje.
     for (const e of input.events) {
