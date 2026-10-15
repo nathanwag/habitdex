@@ -41,7 +41,7 @@ então decidir como o jogo funciona (ritmo de XP, escala de nível entre
 regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
 
 - **Escolhas do jogo ficam no store `events`** (DB versão 2): `start`,
-  `catch`, `battle`, `candy`, `stone` e `party`, com o resultado já sorteado. A meta do dia é o ajuste
+  `catch`, `battle`, `candy`, `stone`, `party` e `close`, com o resultado já sorteado. A meta do dia é o ajuste
   `goal` (0 a 1). "Recomeçar o jogo" em Ajustes apaga os eventos; hábitos e
   checks ficam.
 - **`www/js/pokemon.js`** carrega `www/data/*.json` uma vez (estão no
@@ -68,8 +68,12 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   Níveis são os originais de cada jogo (cada região recomeça baixo).
 - **`www/js/game.js` (`play`) recalcula o jogo inteiro a cada chamada**, dia a
   dia desde o evento `start`, a partir de `habits`, `checks` e `events` (as
-  escolhas do jogador). Por isso marcar um dia passado já corrige níveis e
-  Pokébolas. Não guarde nível nem XP: guarde o evento.
+  escolhas do jogador). Não guarde nível nem XP: guarde o evento.
+- **Dia que virou fica congelado no `close`** (`progress`, `met`, `missing`
+  dos semanais no domingo): o motor usa ele, não os checks, para os dias
+  passados. Os ainda sem `close` saem calculados em `state.pending` e o
+  `game()` do `pokemon.js` os grava. Marcar o passado depois só muda o
+  histórico do hábito; mudar a meta também não reescreve dias fechados.
 - **Regras do motor:** o nível sobe pela meta, não por XP: dia na meta
   (`goal`, 0 a 1) sobe o time (até 6) 1 nível na hora; na virada ainda dá 3
   Pokébolas, e dia abaixo da meta tira 1 nível do time (mínimo 1, sem

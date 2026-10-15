@@ -103,6 +103,33 @@ test('semana que o jogo ou o semanal pegou pela metade nao cobra o semanal', () 
   assert.equal(midHabit.party[0].level, 8);
 });
 
+const close = (day, progress, met, missing = 0) => ({ type: 'close', day, progress, met, missing });
+
+test('dia fechado fica com o resultado da virada: marcar ou desmarcar depois nao muda o jogo', () => {
+  // 03/10 fechou em branco e 04/10 fechou na meta; os checks de agora dizem o contrario.
+  const events = [...started('2026-10-03').events, close('2026-10-03', 0, false), close('2026-10-04', 1, true)];
+  const state = play(started('2026-10-03', { events, checks: [check(1, '2026-10-03')] }), dex);
+  assert.deepEqual([state.party[0].level, state.balls], [2, 8]);
+  assert.deepEqual(state.lastDay, { day: '2026-10-04', progress: 1, met: true });
+});
+
+test('dia que ja virou e ainda nao foi fechado sai em `pending`, calculado pelos checks', () => {
+  const state = play(started('2026-10-03', { checks: [check(1, '2026-10-03')] }), dex);
+  assert.deepEqual(state.pending, [close('2026-10-03', 1, true), close('2026-10-04', 0, false)]);
+  const events = [...started('2026-10-03').events, close('2026-10-03', 1, true)];
+  assert.deepEqual(play(started('2026-10-03', { events }), dex).pending, [close('2026-10-04', 0, false)]);
+});
+
+test('o domingo fecha com as faltas dos semanais, e elas tambem ficam guardadas', () => {
+  const habits = [daily(1), weekly(2, 3)];
+  const fresh = play(started('2026-09-28', { habits, checks: everyDay('2026-09-28', '2026-10-04') }), dex);
+  assert.deepEqual(fresh.pending.at(-1), close('2026-10-04', 1, true, 3));
+  // Fechado com 1 falta: semanais marcados depois nao mudam a cobranca.
+  const events = [...started('2026-09-28').events, ...fresh.pending.slice(0, -1), close('2026-10-04', 1, true, 1)];
+  const state = play(started('2026-09-28', { habits, events, checks: everyDay('2026-09-28', '2026-10-04') }), dex);
+  assert.deepEqual([state.party[0].level, state.lastWeek.missing], [7, 1]);
+});
+
 test('comeca com 5 Pokebolas e ganha 3 a cada dia que fecha na meta', () => {
   assert.equal(play(started(), dex).balls, 5);
   // 10-03 na meta (+3), 10-04 abaixo (nada); hoje ainda nao fechou.

@@ -29,6 +29,8 @@ export async function game() {
   const [dex, habits, checks, events] = await Promise.all([loadDex(), db.habits(), db.allChecks(), db.events()]);
   const today = db.dayOf();
   const state = play({ habits, checks, events, today, goal: db.settings().goal }, dex);
+  // Fecha os dias que viraram: dali em diante o resultado deles nao muda.
+  for (const e of state.pending ?? []) await db.addEvent(e);
   return { dex, state, habits, checks, events, today };
 }
 

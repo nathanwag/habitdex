@@ -1,7 +1,8 @@
 /* Motor do jogo: o estado inteiro (time, niveis, Pokebolas, selvagem do dia)
  * sai do historico, dia a dia, a partir dos checks e das escolhas do
- * jogador (`events`). Marcar um dia passado refaz a conta sozinho. Puro, pra
- * rodar sob node --test; a Pokedex (www/data/pokedex.json) entra pronta. */
+ * jogador (`events`). Dia que ja virou vale pelo seu `close` (o resultado
+ * guardado na virada), entao marcar o passado depois nao muda o jogo. Puro,
+ * pra rodar sob node --test; a Pokedex (www/data/pokedex.json) entra pronta. */
 
 import { dayProgress, todayList, weekMisses } from './habits.js';
 import { addDays, weekOf } from './reminder.js';
@@ -63,6 +64,27 @@ export function play(input, dex) {
 
   const avgLevel = () => Math.round(party.reduce((s, m) => s + m.level, 0) / party.length);
   const progressOf = (day) => dayProgress(todayList(input.habits, input.checks, day));
+  const statusOf = (day) => {
+    const progress = progressOf(day);
+    return { progress, met: progress !== null && progress >= input.goal };
+  };
+  const isSunday = (day) => weekOf(addDays(day, 1)) === addDays(day, 1);
+  // A semana em que o jogo comecou no meio nao cobra os semanais.
+  const chargesWeek = (day) => isSunday(day) && start.day <= weekOf(day);
+
+  // Dia que ja virou fica com o resultado da virada (`close`): checks
+  // marcados ou desmarcados depois nao mexem mais no jogo. Os que ainda nao
+  // foram fechados saem calculados em `pending`, para a tela gravar.
+  const closes = new Map();
+  for (const e of input.events) if (e.type === 'close' && !closes.has(e.day)) closes.set(e.day, e);
+  const pending = [];
+  const closeOf = (day) => {
+    if (closes.has(day)) return closes.get(day);
+    const missing = chargesWeek(day) ? weekMisses(input.habits, input.checks, weekOf(day)) : 0;
+    const e = { type: 'close', day, ...statusOf(day), missing };
+    pending.push(e);
+    return e;
+  };
 
   // Evolucao dividida no mesmo nivel (Tyrogue, Wurmple): vai para o ramo que
   // ainda nao foi pego, para dar para ter todos.
@@ -78,9 +100,8 @@ export function play(input, dex) {
   // Dia na meta: o time sobe um nivel, ja no dia (desmarcar desfaz, porque
   // tudo e recalculado). Na virada, dia na meta ainda ganha 3 Pokebolas;
   // abaixo dela o time cai um nivel (nunca abaixo do 1) sem desevoluir.
-  const levelUp = (day) => {
-    const progress = progressOf(day);
-    if (progress === null || progress < input.goal) return;
+  const levelUp = (day, status) => {
+    if (!status.met) return;
     candies++;
     metStreak++;
     if (metStreak % STONE_STREAK === 0) stones++;
@@ -94,18 +115,16 @@ export function play(input, dex) {
   const levelDown = (levels) => {
     for (const mon of party) mon.level = Math.max(1, mon.level - levels);
   };
-  const turnover = (day) => {
-    const progress = progressOf(day);
+  const turnover = (day, { progress, met, missing }) => {
     if (progress !== null) {
-      lastDay = { day, progress, met: progress >= input.goal };
-      if (lastDay.met) balls += BALLS_PER_DAY;
+      lastDay = { day, progress, met };
+      if (met) balls += BALLS_PER_DAY;
       else { metStreak = 0; levelDown(1); }
     }
-    // Na virada do domingo, cada vez que faltou num semanal tira 1 nivel. A
-    // semana em que o jogo comecou no meio nao cobra.
-    if (weekOf(addDays(day, 1)) === addDays(day, 1) && start.day <= weekOf(day)) {
-      lastWeek = { week: weekOf(day), missing: weekMisses(input.habits, input.checks, weekOf(day)) };
-      levelDown(lastWeek.missing);
+    // Na virada do domingo, cada vez que faltou num semanal tira 1 nivel.
+    if (chargesWeek(day)) {
+      lastWeek = { week: weekOf(day), missing };
+      levelDown(missing);
     }
   };
 
@@ -221,18 +240,18 @@ export function play(input, dex) {
     // a primeira captura forma o time.
     // So e visto quando aparece no Hoje: com a meta batida, ou se ja levou
     // Pokebola (a meta pode ter sido desmarcada depois).
+    const status = day < input.today ? closeOf(day) : statusOf(day);
     const wild = wildOf(day);
-    const progress = progressOf(day);
     const thrown = input.events.some((e) => e.type === 'catch' && e.day === day);
-    if (wild && ((progress !== null && progress >= input.goal) || thrown)) seen.add(wild.id);
-    levelUp(day);
+    if (wild && (status.met || thrown)) seen.add(wild.id);
+    levelUp(day, status);
     // Doce e pedra depois da subida do dia: os ganhos hoje ja valem hoje.
     for (const e of input.events) {
       if (e.day !== day) continue;
       if (e.type === 'candy') useCandy(e);
       if (e.type === 'stone') useStone(e);
     }
-    if (day < input.today) turnover(day);
+    if (day < input.today) turnover(day, status);
   }
 
   let challenge = null;
@@ -254,7 +273,7 @@ export function play(input, dex) {
 
   const sorted = (set) => [...set].sort((a, b) => a - b);
   const result = {
-    started: true, party: plain(party), box: plain(box), hall, balls, candies, stones, metStreak, challenge, lastDay, lastWeek,
+    started: true, pending, party: plain(party), box: plain(box), hall, balls, candies, stones, metStreak, challenge, lastDay, lastWeek,
     caught: sorted(caught), seen: sorted(new Set([...seen, ...caught])),
     wild: null,
   };

@@ -97,8 +97,9 @@ você enfrenta os ginásios de Kanto a Paldea.
   e a caixa segue para a próxima região, todos no nível 1.
 - **Pokédex** com as 1025 espécies, por geração, com a ficha de quem você já
   viu.
-- **Marcar um dia esquecido corrige o jogo.** O estado inteiro é recalculado a
-  partir dos hábitos e das suas escolhas, então nada fica fora de sincronia.
+- **Dia que virou não muda mais.** Na virada, o resultado do dia (meta batida
+  ou não, faltas dos semanais) fica guardado; marcar um dia esquecido depois
+  só entra no histórico do hábito, não no jogo.
 
 ## Como funciona
 
