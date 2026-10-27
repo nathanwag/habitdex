@@ -127,6 +127,16 @@ export async function saveHabit(data) {
   return { ...created, id: await id };
 }
 
+/** Apaga o habito e os checks dele. Os dias ja fechados do jogo (`close`)
+ *  nao mudam; so o dia de hoje deixa de contar o habito. */
+export async function deleteHabit(id) {
+  const range = IDBKeyRange.bound([id, ''], [id, '￿']);
+  await tx(['habits', 'checks'], 'readwrite', (t) => {
+    t.objectStore('habits').delete(id);
+    t.objectStore('checks').delete(range);
+  });
+}
+
 /** Troca a posicao de dois habitos na lista. */
 export async function swapOrder(a, b) {
   await tx('habits', 'readwrite', (t) => {

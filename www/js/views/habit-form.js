@@ -92,7 +92,8 @@ function paint(view) {
       <button class="btn btn--primary btn--lg btn--block" type="submit">${editing ? 'Salvar' : 'Criar hábito'}</button>
       ${editing ? raw(html`
         <button class="btn btn--ghost btn--block" type="button" data-archive>
-          ${draft.archived ? 'Desarquivar' : 'Arquivar'}</button>`) : ''}
+          ${draft.archived ? 'Desarquivar' : 'Arquivar'}</button>
+        <button class="btn btn--ghost btn--block" type="button" data-delete>Apagar</button>`) : ''}
     </form>`;
 }
 
@@ -178,6 +179,15 @@ async function open(view, params) {
       push.sync().catch(() => {});
       toast(archived ? 'Hábito arquivado' : 'Hábito de volta');
       location.hash = archived ? '#/habitos' : `#/habito?id=${id}`;
+      return;
+    }
+    if (e.target.closest('[data-delete]')) {
+      if (!window.confirm(`Apagar "${draft.name}" e todo o histórico dele? Não dá para desfazer.`)) return;
+      await db.deleteHabit(id);
+      draft = null;
+      push.sync().catch(() => {});
+      toast('Hábito apagado');
+      location.hash = '#/habitos';
     }
   };
   // No #view e nao no form: paint() troca o form a cada toque.

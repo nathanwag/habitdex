@@ -217,7 +217,7 @@ regiões, punição). Mudar regra = mudar `game.js` com teste, não as telas.
   para trás. Tocar num dia passado marca ou desmarca, inclusive antes da
   criação.
 - `#/habito/novo` e `#/habito/editar?id=` (`views/habit-form.js`): nome,
-  frequência, lembrete e arquivar.
+  frequência, lembrete, arquivar e apagar (some com os checks; os dias com `close` não mudam).
 - `#/habitos` (`views/habits.js`): todos os hábitos, ordem do Hoje e os
   arquivados.
 - `#/ajustes` (`views/settings.js`): liga/desliga dos lembretes, teste,
